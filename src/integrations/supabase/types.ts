@@ -14,7 +14,84 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string
+          id: string
+          location: string | null
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string
+          id: string
+          location?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          location?: string | null
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      videos: {
+        Row: {
+          category: Database["public"]["Enums"]["video_category"]
+          created_at: string
+          description: string | null
+          duration_seconds: number | null
+          id: string
+          status: Database["public"]["Enums"]["video_status"]
+          thumbnail_path: string | null
+          title: string
+          updated_at: string
+          user_id: string
+          video_path: string
+          views_count: number
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["video_category"]
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          status?: Database["public"]["Enums"]["video_status"]
+          thumbnail_path?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+          video_path: string
+          views_count?: number
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["video_category"]
+          created_at?: string
+          description?: string | null
+          duration_seconds?: number | null
+          id?: string
+          status?: Database["public"]["Enums"]["video_status"]
+          thumbnail_path?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          video_path?: string
+          views_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +100,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      video_category:
+        | "Funny"
+        | "Music"
+        | "Experience"
+        | "Sports"
+        | "Learning"
+        | "Serious Topics"
+      video_status: "processing" | "published" | "removed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +234,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      video_category: [
+        "Funny",
+        "Music",
+        "Experience",
+        "Sports",
+        "Learning",
+        "Serious Topics",
+      ],
+      video_status: ["processing", "published", "removed"],
+    },
   },
 } as const
