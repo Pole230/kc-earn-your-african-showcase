@@ -1,24 +1,71 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { Bell, Sparkles } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { CategoryChips } from "@/components/CategoryChips";
+import { VideoCard } from "@/components/VideoCard";
+import { VIDEOS } from "@/data/content";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "KC Earn — African Social Video Feed" },
+      {
+        name: "description",
+        content:
+          "Watch and share African stories: funny clips, music, sports, learning and serious topics from creators across the continent.",
+      },
+      { property: "og:title", content: "KC Earn — African Social Video Feed" },
+      {
+        property: "og:description",
+        content: "A mobile-first home for African creators and the stories they share.",
+      },
+    ],
+  }),
+  component: Home,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Home() {
+  const [category, setCategory] = useState("All");
+  const posts = category === "All" ? VIDEOS : VIDEOS.filter((v) => v.category === category);
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="px-5 pt-6">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">KC Earn</p>
+          <h1 className="truncate text-2xl font-bold">Your feed</h1>
+        </div>
+        <Link
+          to="/notifications"
+          aria-label="Notifications"
+          className="grid size-11 shrink-0 place-items-center rounded-2xl border border-border bg-surface text-foreground"
+        >
+          <Bell className="size-5" />
+        </Link>
+      </header>
+
+      <div className="mt-5 flex items-center gap-3 rounded-2xl border border-border bg-surface p-4">
+        <Sparkles className="size-5 shrink-0 text-brand" />
+        <p className="text-sm text-muted-foreground">
+          Fresh drops from creators you follow, updated through the day.
+        </p>
+      </div>
+
+      <div className="sticky top-0 z-30 -mx-5 bg-background/90 px-5 py-4 backdrop-blur">
+        <CategoryChips active={category} onSelect={setCategory} />
+      </div>
+
+      <section className="space-y-5 pb-4">
+        {posts.map((post, i) => (
+          <VideoCard key={post.id} post={post} priority={i === 0} />
+        ))}
+        {posts.length === 0 ? (
+          <p className="py-16 text-center text-sm text-muted-foreground">
+            Nothing here yet in {category}.
+          </p>
+        ) : null}
+      </section>
     </div>
   );
 }
