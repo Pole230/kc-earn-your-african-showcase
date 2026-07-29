@@ -1,41 +1,76 @@
--- 004_storage_object_rls_policies.sql
+-- Migration: Add RLS policies on storage.objects to restrict uploads/updates/deletes to per-user folders
+-- Keeps videos and thumbnails buckets private; viewing remains via signed URLs
+
+BEGIN;
+
+-- Ensure the videos and thumbnails buckets are private
+UPDATE storage.buckets
+SET public = false
+WHERE name IN ('videos', 'thumbnails');
 
 -- Enable Row Level Security on storage.objects
-alter table if exists storage.objects enable row level security;
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
--- Allow authenticated users to INSERT into storage.objects for the videos and thumbnails buckets
--- only when they are uploading into their own folder (first path segment is the user id).
-create policy if not exists "insert_own_videos_thumbnails" on storage.objects
-  for insert with check (
-    bucket_id in ('videos','thumbnails')
-    and auth.uid() = split_part(name, '/', 1)
-  );
+-- Drop existing policies (safe to run multiple times)
+DROP POLICY IF EXISTS allow_upload_by_owner ON storage.objects;
+DROP POLICY IF EXISTS allow_update_by_owner ON storage.objects;
+DROP POLICY IF EXISTS allow_delete_by_owner ON storage.objects;
 
--- Allow authenticated users to SELECT their own objects in the videos and thumbnails buckets
--- (owners can list/read metadata if needed). Do NOT allow public select.
-create policy if not exists "select_own_videos_thumbnails" on storage.objects
-  for select using (
-    bucket_id in ('videos','thumbnails')
-    and auth.uid() = split_part(name, '/', 1)
-  );
+--
+-- Policy: allow inserts (uploads) only when the object path is within the authenticated user's folder
+-- Paths allowed: videos/<user_id>/*  or thumbnails/<user_id>/*
+--
+CREATE POLICY allow_upload_by_owner ON storage.objects
+FOR INSERT TO authenticated
+WITH CHECK (
+  auth.uid() IS NOT NULL
+  AND (
+    name LIKE 'videos/' || auth.uid() || '/%' OR
+    name LIKE 'thumbnails/' || auth.uid() || '/%'
+  )
+);
 
--- Allow authenticated users to UPDATE objects only in their own folder for videos and thumbnails
-create policy if not exists "update_own_videos_thumbnails" on storage.objects
-  for update using (
-    bucket_id in ('videos','thumbnails')
-    and auth.uid() = split_part(name, '/', 1)
-  ) with check (
-    bucket_id in ('videos','thumbnails')
-    and auth.uid() = split_part(name, '/', 1)
-  );
+--
+-- Policy: allow updates only when the existing object belongs to the authenticated user
+-- and the updated object's path (name) also remains within the user's folder
+--
+CREATE POLICY allow_update_by_owner ON storage.objects
+FOR UPDATE TO authenticated
+USING (
+  auth.uid() IS NOT NULL
+  AND (
+    name LIKE 'videos/' || auth.uid() || '/%' OR
+    name LIKE 'thumbnails/' || auth.uid() || '/%'
+  )
+)
+WITH CHECK (
+  auth.uid() IS NOT NULL
+  AND (
+    name LIKE 'videos/' || auth.uid() || '/%' OR
+    name LIKE 'thumbnails/' || auth.uid() || '/%'
+  )
+);
 
--- Allow authenticated users to DELETE objects only in their own folder for videos and thumbnails
-create policy if not exists "delete_own_videos_thumbnails" on storage.objects
-  for delete using (
-    bucket_id in ('videos','thumbnails')
-    and auth.uid() = split_part(name, '/', 1)
-  );
+--
+-- Policy: allow deletes only when the existing object belongs to the authenticated user
+--
+CREATE POLICY allow_delete_by_owner ON storage.objects
+FOR DELETE TO authenticated
+USING (
+  auth.uid() IS NOT NULL
+  AND (
+    name LIKE 'videos/' || auth.uid() || '/%' OR
+    name LIKE 'thumbnails/' || auth.uid() || '/%'
+  )
+);
 
--- Note: We intentionally do NOT create any policy that allows public select on storage.objects.
--- Access to private objects for viewing should be done via signed URLs (createSignedUrls) which
--- remain compatible with private buckets.
+COMMIT;
+
+-- Down (rollback): drop the policies added above. Do not change bucket privacy here to avoid exposing data.
+
+-- Note: Some migration runners expect a single-file up/down split; if your runner requires a separate down migration file,
+-- extract the statements below into the appropriate rollback file.
+
+-- DROP POLICY IF EXISTS allow_upload_by_owner ON storage.objects;
+-- DROP POLICY IF EXISTS allow_update_by_owner ON storage.objects;
+-- DROP POLICY IF EXISTS allow_delete_by_owner ON storage.objects;
