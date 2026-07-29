@@ -87,13 +87,73 @@ function Profile() {
           >
             Edit profile
           </button>
-          <button
-            type="button"
-            className="flex-1 rounded-2xl border border-border bg-surface py-3 text-sm font-bold"
-          >
-            Share profile
-          </button>
+          {user ? (
+            <button
+              type="button"
+              onClick={async () => {
+                await queryClient.cancelQueries();
+                queryClient.clear();
+                await signOut();
+                toast.success("Signed out");
+              }}
+              className="flex-1 rounded-2xl border border-border bg-surface py-3 text-sm font-bold"
+            >
+              Sign out
+            </button>
+          ) : (
+            <Link
+              to="/auth"
+              className="flex-1 rounded-2xl border border-border bg-surface py-3 text-center text-sm font-bold"
+            >
+              Sign in
+            </Link>
+          )}
         </div>
+
+        {user ? (
+          <section className="mt-6">
+            <h2 className="text-sm font-semibold">My uploads</h2>
+            {myVideos.length === 0 ? (
+              <p className="mt-2 text-sm text-muted-foreground">
+                No uploads yet — publish your first video from the Upload tab.
+              </p>
+            ) : (
+              <div className="mt-3 space-y-3">
+                {myVideos.map((video) => (
+                  <div
+                    key={video.id}
+                    className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3"
+                  >
+                    <div className="size-14 shrink-0 overflow-hidden rounded-xl bg-secondary">
+                      {video.thumbnailUrl ? (
+                        <img
+                          src={video.thumbnailUrl}
+                          alt={video.title}
+                          className="size-full object-cover"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold">{video.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {video.category} · {formatDuration(video.duration_seconds)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      aria-label={`Delete ${video.title}`}
+                      onClick={() => remove(video.id)}
+                      className="grid size-9 place-items-center rounded-xl border border-border text-muted-foreground"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : null}
+
 
         <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-surface p-1">
           {(
