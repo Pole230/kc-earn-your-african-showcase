@@ -2,9 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Bell, Sparkles } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { CategoryChips } from "@/components/CategoryChips";
 import { VideoCard } from "@/components/VideoCard";
+import { UploadedVideoCard } from "@/components/UploadedVideoCard";
 import { VIDEOS } from "@/data/content";
+import { fetchFeed } from "@/lib/videos";
 
 export const Route = createFileRoute("/")({
   head: () => ({
