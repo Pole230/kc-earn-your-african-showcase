@@ -26,6 +26,25 @@ export const Route = createFileRoute("/profile")({
 function Profile() {
   const [tab, setTab] = useState<"videos" | "saved">("videos");
   const posts = tab === "videos" ? VIDEOS : VIDEOS.slice(2, 5);
+  const { user, signOut } = useAuth();
+  const queryClient = useQueryClient();
+  const { data: myVideos = [] } = useQuery({
+    queryKey: ["my-videos", user?.id],
+    queryFn: () => fetchMyVideos(user!.id),
+    enabled: !!user,
+  });
+
+  async function remove(id: string) {
+    const { error } = await supabase.from("videos").delete().eq("id", id);
+    if (error) {
+      toast.error("Could not delete video");
+      return;
+    }
+    await queryClient.invalidateQueries({ queryKey: ["my-videos"] });
+    await queryClient.invalidateQueries({ queryKey: ["feed"] });
+    toast.success("Video deleted");
+  }
+
 
   return (
     <div className="pb-4">
