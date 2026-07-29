@@ -31,6 +31,11 @@ export const Route = createFileRoute("/")({
 function Home() {
   const [category, setCategory] = useState("All");
   const posts = category === "All" ? VIDEOS : VIDEOS.filter((v) => v.category === category);
+  const { data: uploaded = [], isLoading } = useQuery({
+    queryKey: ["feed", category],
+    queryFn: () => fetchFeed(category),
+  });
+
 
   return (
     <div className="px-5 pt-6">
