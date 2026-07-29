@@ -1,9 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { UploadCloud, Film, Info } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { UploadCloud, Film, Info, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { CategoryChips } from "@/components/CategoryChips";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { probeVideoFile } from "@/lib/video-probe";
+import type { Category } from "@/data/content";
 
 export const Route = createFileRoute("/upload")({
   head: () => ({
@@ -11,7 +16,8 @@ export const Route = createFileRoute("/upload")({
       { title: "Upload a Video — KC Earn" },
       {
         name: "description",
-        content: "Share your video with the KC Earn community: add a title, description and category.",
+        content:
+          "Share your video with the KC Earn community: add a title, description and category.",
       },
       { property: "og:title", content: "Upload a Video — KC Earn" },
       { property: "og:description", content: "Publish your story to the KC Earn community." },
@@ -20,29 +26,146 @@ export const Route = createFileRoute("/upload")({
   component: Upload,
 });
 
+const MAX_BYTES = 200 * 1024 * 1024;
+
 function Upload() {
-  const [category, setCategory] = useState("Funny");
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const [category, setCategory] = useState<Category>("Funny");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<{ url: string | null; duration: number; blob: Blob | null } | null>(
+    null,
+  );
+  const [progress, setProgress] = useState<string | null>(null);
+
+  async function onPick(selected: File | undefined) {
+    if (!selected) return;
+    if (!selected.type.startsWith("video/")) {
+      toast.error("Please choose a video file");
+      return;
+    }
+    if (selected.size > MAX_BYTES) {
+      toast.error("Video is too large", { description: "Maximum size is 200MB." });
+      return;
+    }
+    setFile(selected);
+    setPreview(null);
+    const probe = await probeVideoFile(selected);
+    setPreview({
+      url: probe.thumbnailPreview,
+      duration: probe.durationSeconds,
+      blob: probe.thumbnailBlob,
+    });
+  }
+
+  async function publish() {
+    if (!user || !file) return;
+    setProgress("Uploading video…");
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "mp4";
+      const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const videoPath = `${user.id}/${stamp}.${ext}`;
+
+      const { error: videoError } = await supabase.storage
+        .from("videos")
+        .upload(videoPath, file, { contentType: file.type, upsert: false });
+      if (videoError) throw videoError;
+
+      let thumbnailPath: string | null = null;
+      if (preview?.blob) {
+        setProgress("Uploading cover image…");
+        thumbnailPath = `${user.id}/${stamp}.jpg`;
+        const { error: thumbError } = await supabase.storage
+          .from("thumbnails")
+          .upload(thumbnailPath, preview.blob, { contentType: "image/jpeg", upsert: false });
+        if (thumbError) thumbnailPath = null;
+      }
+
+      setProgress("Publishing…");
+      const { error: insertError } = await supabase.from("videos").insert({
+        user_id: user.id,
+        title: title.trim(),
+        description: description.trim() || null,
+        category,
+        video_path: videoPath,
+        thumbnail_path: thumbnailPath,
+        duration_seconds: preview?.duration ?? null,
+        status: "published",
+      });
+      if (insertError) throw insertError;
+
+      await queryClient.invalidateQueries({ queryKey: ["feed"] });
+      await queryClient.invalidateQueries({ queryKey: ["my-videos"] });
+      toast.success("Video published", { description: "It's live in the KC Earn feed." });
+      setFile(null);
+      setPreview(null);
+      setTitle("");
+      setDescription("");
+      navigate({ to: "/" });
+    } catch (err) {
+      toast.error("Upload failed", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setProgress(null);
+    }
+  }
+
+  if (!loading && !user) {
+    return (
+      <div className="px-5 pb-4">
+        <ScreenHeader title="Upload" subtitle="Share a story with the community" />
+        <div className="rounded-3xl border border-border bg-surface p-8 text-center">
+          <span className="gradient-brand mx-auto grid size-14 place-items-center rounded-2xl text-brand-foreground">
+            <LogIn className="size-7" />
+          </span>
+          <h2 className="mt-4 text-lg font-semibold">Sign in to upload</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            You need a creator account to publish videos on KC Earn.
+          </p>
+          <Link
+            to="/auth"
+            className="gradient-brand mt-6 inline-flex w-full items-center justify-center rounded-2xl py-3.5 text-base font-bold text-brand-foreground shadow-lift"
+          >
+            Sign in or create account
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const busy = progress !== null;
 
   return (
     <div className="px-5 pb-4">
       <ScreenHeader title="Upload" subtitle="Share a story with the community" />
 
-      <label className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-border bg-surface px-6 py-12 text-center">
-        <span className="gradient-brand grid size-14 place-items-center rounded-2xl text-brand-foreground">
-          <UploadCloud className="size-7" />
+      <label className="flex cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl border border-dashed border-border bg-surface px-6 py-8 text-center">
+        {preview?.url ? (
+          <img
+            src={preview.url}
+            alt="Selected video cover"
+            className="h-40 w-full rounded-2xl object-cover"
+          />
+        ) : (
+          <span className="gradient-brand grid size-14 place-items-center rounded-2xl text-brand-foreground">
+            <UploadCloud className="size-7" />
+          </span>
+        )}
+        <span className="line-clamp-1 text-base font-semibold">
+          {file?.name ?? "Select a video to upload"}
         </span>
-        <span className="text-base font-semibold">
-          {fileName ?? "Select a video to upload"}
-        </span>
-        <span className="text-xs text-muted-foreground">MP4 or MOV · up to 10 minutes</span>
+        <span className="text-xs text-muted-foreground">MP4 or MOV · up to 200MB</span>
         <input
           type="file"
           accept="video/*"
           className="hidden"
-          onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+          disabled={busy}
+          onChange={(e) => onPick(e.target.files?.[0])}
         />
       </label>
 
@@ -71,6 +194,7 @@ function Upload() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
+            maxLength={600}
             placeholder="Tell viewers what this is about"
             className="w-full resize-none rounded-2xl border border-border bg-surface px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-brand"
           />
@@ -78,23 +202,28 @@ function Upload() {
 
         <div>
           <p className="mb-2 text-sm font-semibold">Category</p>
-          <CategoryChips active={category} onSelect={setCategory} includeAll={false} />
+          <CategoryChips
+            active={category}
+            onSelect={(value) => setCategory(value as Category)}
+            includeAll={false}
+          />
         </div>
 
         <div className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-4">
           <Info className="mt-0.5 size-4 shrink-0 text-brand" />
           <p className="text-xs text-muted-foreground">
-            Uploads go through community review. Keep content original and respectful.
+            Keep content original and respectful. You can delete your video any time from your
+            profile.
           </p>
         </div>
 
         <button
           type="button"
-          disabled={!fileName || title.trim() === ""}
-          onClick={() => toast.success("Upload queued", { description: "We'll notify you when it's live." })}
+          disabled={!file || title.trim() === "" || busy}
+          onClick={publish}
           className="gradient-brand flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-brand-foreground shadow-lift disabled:opacity-40"
         >
-          <Film className="size-5" /> Publish video
+          <Film className="size-5" /> {progress ?? "Publish video"}
         </button>
       </div>
     </div>
