@@ -65,15 +65,22 @@ function Home() {
       </div>
 
       <section className="space-y-5 pb-4">
-        {posts.map((post, i) => (
-          <VideoCard key={post.id} post={post} priority={i === 0} />
+        {uploaded.map((video) => (
+          <UploadedVideoCard key={video.id} video={video} />
         ))}
-        {posts.length === 0 ? (
+        {isLoading ? (
+          <div className="h-64 animate-pulse rounded-3xl border border-border bg-surface" />
+        ) : null}
+        {posts.map((post, i) => (
+          <VideoCard key={post.id} post={post} priority={i === 0 && uploaded.length === 0} />
+        ))}
+        {posts.length === 0 && uploaded.length === 0 && !isLoading ? (
           <p className="py-16 text-center text-sm text-muted-foreground">
             Nothing here yet in {category}.
           </p>
         ) : null}
       </section>
+
     </div>
   );
 }
