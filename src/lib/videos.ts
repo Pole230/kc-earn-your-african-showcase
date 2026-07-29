@@ -28,11 +28,10 @@ type Row = {
   user_id: string;
   video_path: string;
   thumbnail_path: string | null;
-  profiles: { display_name: string; username: string | null; location: string | null } | null;
 };
 
 const SELECT =
-  "id,title,description,category,duration_seconds,views_count,created_at,status,user_id,video_path,thumbnail_path,profiles(display_name,username,location)";
+  "id,title,description,category,duration_seconds,views_count,created_at,status,user_id,video_path,thumbnail_path";
 
 async function signAll(bucket: string, paths: string[]) {
   const map = new Map<string, string>();
@@ -57,6 +56,24 @@ async function hydrate(rows: Row[]): Promise<FeedVideo[]> {
     ),
   ]);
 
+  // Fetch creator profiles explicitly using user_id so we don't depend on a DB relationship name
+  const userIds = [...new Set(rows.map((r) => r.user_id).filter(Boolean))];
+  const profilesMap = new Map<string, { display_name: string; username: string | null; location: string | null }>();
+  if (userIds.length > 0) {
+    const { data: profilesData, error: profilesError } = await supabase
+      .from("profiles")
+      .select("id,display_name,username,location")
+      .in("id", userIds);
+    if (profilesError) {
+      // If profiles cannot be fetched due to RLS or other issues, fall back to defaults.
+      console.error("Failed to fetch profiles for feed hydrate:", profilesError);
+    } else {
+      profilesData?.forEach((p: any) => {
+        profilesMap.set(p.id, { display_name: p.display_name, username: p.username ?? null, location: p.location ?? null });
+      });
+    }
+  }
+
   return rows.map((r) => ({
     id: r.id,
     title: r.title,
@@ -70,9 +87,9 @@ async function hydrate(rows: Row[]): Promise<FeedVideo[]> {
     videoUrl: videoUrls.get(r.video_path) ?? null,
     thumbnailUrl: r.thumbnail_path ? (thumbUrls.get(r.thumbnail_path) ?? null) : null,
     creator: {
-      display_name: r.profiles?.display_name ?? "KC Earn creator",
-      username: r.profiles?.username ?? null,
-      location: r.profiles?.location ?? null,
+      display_name: profilesMap.get(r.user_id)?.display_name ?? "KC Earn creator",
+      username: profilesMap.get(r.user_id)?.username ?? null,
+      location: profilesMap.get(r.user_id)?.location ?? null,
     },
   }));
 }
