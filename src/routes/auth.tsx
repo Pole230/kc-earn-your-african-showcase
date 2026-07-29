@@ -1,0 +1,153 @@
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
+import { ScreenHeader } from "@/components/ScreenHeader";
+
+export const Route = createFileRoute("/auth")({
+  head: () => ({
+    meta: [
+      { title: "Sign in to KC Earn" },
+      {
+        name: "description",
+        content: "Create a KC Earn creator account to upload videos and share your stories.",
+      },
+      { property: "og:title", content: "Sign in to KC Earn" },
+      { property: "og:description", content: "Join KC Earn to upload and share African stories." },
+    ],
+  }),
+  component: AuthScreen,
+});
+
+function AuthScreen() {
+  const navigate = useNavigate();
+  const router = useRouter();
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      if (mode === "signup") {
+        const { error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: { display_name: displayName.trim() || email.split("@")[0] },
+          },
+        });
+        if (error) throw error;
+        toast.success("Account created", { description: "You can start uploading now." });
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+        if (error) throw error;
+        toast.success("Welcome back");
+      }
+      await router.invalidate();
+      navigate({ to: "/upload" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function google() {
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      toast.error("Google sign-in failed");
+      return;
+    }
+    if (result.redirected) return;
+    await router.invalidate();
+    navigate({ to: "/upload" });
+  }
+
+  const input =
+    "w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-brand";
+
+  return (
+    <div className="px-5 pb-4">
+      <ScreenHeader
+        title={mode === "signin" ? "Sign in" : "Create account"}
+        subtitle="Your creator account for KC Earn uploads"
+      />
+
+      <div className="mb-5 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-surface p-1">
+        {(["signin", "signup"] as const).map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => setMode(m)}
+            className={`rounded-xl py-2 text-sm font-semibold transition-colors ${
+              mode === m ? "bg-brand text-brand-foreground" : "text-muted-foreground"
+            }`}
+          >
+            {m === "signin" ? "Sign in" : "Sign up"}
+          </button>
+        ))}
+      </div>
+
+      <form onSubmit={submit} className="space-y-4">
+        {mode === "signup" ? (
+          <input
+            className={input}
+            placeholder="Display name"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            maxLength={60}
+          />
+        ) : null}
+        <input
+          className={input}
+          type="email"
+          required
+          placeholder="Email"
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          className={input}
+          type="password"
+          required
+          minLength={6}
+          placeholder="Password"
+          autoComplete={mode === "signin" ? "current-password" : "new-password"}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button
+          type="submit"
+          disabled={busy}
+          className="gradient-brand w-full rounded-2xl py-4 text-base font-bold text-brand-foreground shadow-lift disabled:opacity-40"
+        >
+          {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+        </button>
+      </form>
+
+      <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
+        <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
+      </div>
+
+      <button
+        type="button"
+        onClick={google}
+        className="w-full rounded-2xl border border-border bg-surface py-4 text-base font-semibold"
+      >
+        Continue with Google
+      </button>
+    </div>
+  );
+}
