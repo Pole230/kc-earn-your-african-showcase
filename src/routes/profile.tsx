@@ -1,7 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { MapPin, Settings, Grid3x3, Bookmark } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { MapPin, Settings, Grid3x3, Bookmark, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { PROFILE, VIDEOS } from "@/data/content";
+import { useAuth } from "@/hooks/useAuth";
+import { fetchMyVideos, formatDuration } from "@/lib/videos";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
