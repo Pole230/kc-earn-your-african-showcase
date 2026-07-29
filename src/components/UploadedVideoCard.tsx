@@ -33,9 +33,12 @@ export function UploadedVideoCard({ video }: { video: FeedVideo }) {
             <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-background/70 px-3 py-1 text-xs font-semibold backdrop-blur">
               {video.category}
             </span>
-            <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-background/70 px-2.5 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
-              {formatDuration(video.duration_seconds)}
-            </span>
+            {video.duration_seconds ? (
+              <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-background/70 px-2.5 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
+                {formatDuration(video.duration_seconds)}
+              </span>
+            ) : null}
+
           </>
         ) : null}
       </div>
