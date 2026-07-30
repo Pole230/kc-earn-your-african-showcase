@@ -1,8 +1,9 @@
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
 /**
  * Simple server-side helpers for video storage and DB integration.
  * Keep these small and focused for Stage 9.1.
+ *
+ * Note: supabaseAdmin is lazy-loaded inside functions to avoid bundling server-only clients
+ * into client-side code during the build.
  */
 
 export type CreateVideoPayload = {
@@ -17,17 +18,20 @@ export type CreateVideoPayload = {
 };
 
 export async function createVideoRecord(payload: CreateVideoPayload) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   // Cast to any to avoid strict generated Insert type mismatches at compile time
   const { data, error } = await supabaseAdmin.from("videos").insert(payload as any).select().single();
   return { data, error };
 }
 
 export async function updateVideoStatus(id: string, status: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin.from("videos").update({ status }).eq("id", id).select().single();
   return { data, error };
 }
 
 export async function createSignedUrl(bucket: string, path: string, expires = 60 * 60) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   // returns { signedUrl, error }
   try {
     const { data, error } = await supabaseAdmin.storage.from(bucket).createSignedUrl(path, expires);

@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { authenticateRequest } from "@/lib/ai-chat.server";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 type UploadBody = {
   title?: string | null;
@@ -42,6 +41,8 @@ export const Route = createFileRoute("/api/videos/upload")({
         };
 
         try {
+          // Lazy-load the server-only supabase admin client to avoid bundling into client builds
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           // Cast to any to satisfy generated Supabase types at compile time
           const { data, error } = await supabaseAdmin.from("videos").insert(row as any).select().single();
           if (error) {
