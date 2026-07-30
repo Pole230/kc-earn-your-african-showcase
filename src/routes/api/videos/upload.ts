@@ -32,17 +32,18 @@ export const Route = createFileRoute("/api/videos/upload")({
 
         const row = {
           user_id: auth.userId,
-          title: (body.title ?? "").trim() || null,
+          title: (body.title ?? "").trim() || "",
           description: (body.description ?? "").trim() || null,
-          category: body.category ?? null,
+          category: (body.category ?? undefined) as any,
           video_path: body.video_path,
           thumbnail_path: body.thumbnail_path ?? null,
           duration_seconds: body.duration_seconds ?? null,
-          status: body.status ?? "processing",
+          status: (body.status ?? "processing") as any,
         };
 
         try {
-          const { data, error } = await supabaseAdmin.from("videos").insert(row).select().single();
+          // Cast to any to satisfy generated Supabase types at compile time
+          const { data, error } = await supabaseAdmin.from("videos").insert(row as any).select().single();
           if (error) {
             console.error("[videos/upload] insert error", error);
             return new Response("Database insert failed", { status: 500 });

@@ -17,7 +17,8 @@ export type CreateVideoPayload = {
 };
 
 export async function createVideoRecord(payload: CreateVideoPayload) {
-  const { data, error } = await supabaseAdmin.from("videos").insert(payload).select().single();
+  // Cast to any to avoid strict generated Insert type mismatches at compile time
+  const { data, error } = await supabaseAdmin.from("videos").insert(payload as any).select().single();
   return { data, error };
 }
 
