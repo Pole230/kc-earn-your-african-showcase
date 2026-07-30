@@ -9,13 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WithdrawalsRouteImport } from './routes/withdrawals'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as CreatorAnalyticsRouteImport } from './routes/creator-analytics'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WithdrawalsRoute = WithdrawalsRouteImport.update({
+  id: '/withdrawals',
+  path: '/withdrawals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
   path: '/upload',
@@ -36,6 +43,11 @@ const ExploreRoute = ExploreRouteImport.update({
   path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CreatorAnalyticsRoute = CreatorAnalyticsRouteImport.update({
+  id: '/creator-analytics',
+  path: '/creator-analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -50,60 +62,87 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/creator-analytics': typeof CreatorAnalyticsRoute
   '/explore': typeof ExploreRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/upload': typeof UploadRoute
+  '/withdrawals': typeof WithdrawalsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/creator-analytics': typeof CreatorAnalyticsRoute
   '/explore': typeof ExploreRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/upload': typeof UploadRoute
+  '/withdrawals': typeof WithdrawalsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/creator-analytics': typeof CreatorAnalyticsRoute
   '/explore': typeof ExploreRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/upload': typeof UploadRoute
+  '/withdrawals': typeof WithdrawalsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
+    | '/creator-analytics'
     | '/explore'
     | '/notifications'
     | '/profile'
     | '/upload'
+    | '/withdrawals'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/explore' | '/notifications' | '/profile' | '/upload'
+  to:
+    | '/'
+    | '/auth'
+    | '/creator-analytics'
+    | '/explore'
+    | '/notifications'
+    | '/profile'
+    | '/upload'
+    | '/withdrawals'
   id:
     | '__root__'
     | '/'
     | '/auth'
+    | '/creator-analytics'
     | '/explore'
     | '/notifications'
     | '/profile'
     | '/upload'
+    | '/withdrawals'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  CreatorAnalyticsRoute: typeof CreatorAnalyticsRoute
   ExploreRoute: typeof ExploreRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   UploadRoute: typeof UploadRoute
+  WithdrawalsRoute: typeof WithdrawalsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/withdrawals': {
+      id: '/withdrawals'
+      path: '/withdrawals'
+      fullPath: '/withdrawals'
+      preLoaderRoute: typeof WithdrawalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/upload': {
       id: '/upload'
       path: '/upload'
@@ -132,6 +171,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/creator-analytics': {
+      id: '/creator-analytics'
+      path: '/creator-analytics'
+      fullPath: '/creator-analytics'
+      preLoaderRoute: typeof CreatorAnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -152,11 +198,23 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  CreatorAnalyticsRoute: CreatorAnalyticsRoute,
   ExploreRoute: ExploreRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   UploadRoute: UploadRoute,
+  WithdrawalsRoute: WithdrawalsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
