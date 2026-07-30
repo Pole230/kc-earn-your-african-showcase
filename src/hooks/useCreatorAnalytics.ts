@@ -157,25 +157,27 @@ export function useCreatorAnalytics() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const earningsQuery = useQuery(["creator", "analytics", "earnings"], () =>
-    (async () => {
+  const earningsQuery = useQuery({
+    queryKey: ["creator", "analytics", "earnings"],
+    queryFn: async () => {
       const { data: session } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) throw new Error("Not authenticated");
-      const { data, error } = await supabase.from<CreatorEarning>("creator_earnings").select("amount");
+      if (!session?.user) throw new Error("Not authenticated");
+      const { data, error } = await supabase.from("creator_earnings").select("amount");
       if (error) throw error;
-      return (data ?? []).reduce((s, r) => s + Number(r.amount ?? 0), 0);
-    })(),
-  {
+      return ((data ?? []) as { amount: number | string }[]).reduce(
+        (s, r) => s + Number(r.amount ?? 0),
+        0,
+      );
+    },
     enabled: !!user,
     staleTime: 60 * 1000,
   });
 
-  const viewsQuery = useQuery(["creator", "analytics", "views"], () => getTotalViews(), { enabled: !!user });
-  const likesQuery = useQuery(["creator", "analytics", "likes"], () => getTotalLikes(), { enabled: !!user });
-  const commentsQuery = useQuery(["creator", "analytics", "comments"], () => getTotalComments(), { enabled: !!user });
-  const followersQuery = useQuery(["creator", "analytics", "followers"], () => getFollowerGrowth(), { enabled: !!user });
-  const topQuery = useQuery(["creator", "analytics", "top"], () => getTopPerformingVideos(), { enabled: !!user });
+  const viewsQuery = useQuery({ queryKey: ["creator", "analytics", "views"], queryFn: () => getTotalViews(), enabled: !!user });
+  const likesQuery = useQuery({ queryKey: ["creator", "analytics", "likes"], queryFn: () => getTotalLikes(), enabled: !!user });
+  const commentsQuery = useQuery({ queryKey: ["creator", "analytics", "comments"], queryFn: () => getTotalComments(), enabled: !!user });
+  const followersQuery = useQuery({ queryKey: ["creator", "analytics", "followers"], queryFn: () => getFollowerGrowth(), enabled: !!user });
+  const topQuery = useQuery({ queryKey: ["creator", "analytics", "top"], queryFn: () => getTopPerformingVideos(), enabled: !!user });
 
   return {
     totalEarnings: earningsQuery.data ?? 0,
