@@ -109,6 +109,25 @@ export async function fetchFeed(category?: string) {
   return hydrate((data ?? []) as unknown as Row[]);
 }
 
+// New: fetch a page of feed items for infinite scrolling. Returns up to `limit` items
+// ordered by created_at descending. If `before` is provided it will fetch items
+// with created_at < before (older items).
+export async function fetchFeedPage(category?: string, limit = 6, before?: string | null) {
+  let query = supabase
+    .from("videos")
+    .select(SELECT)
+    .eq("status", "published")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (category && category !== "All") query = query.eq("category", category as Category);
+  if (before) query = query.lt("created_at", before);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return hydrate((data ?? []) as unknown as Row[]);
+}
+
 export async function fetchMyVideos(userId: string) {
   const { data, error } = await supabase
     .from("videos")
