@@ -2,7 +2,8 @@ name: CI - feature/video-upload
 
 on:
   push:
-    branches: ["feature/video-upload"]
+    branches:
+      - feature/video-upload
   workflow_dispatch:
 
 permissions: read-all
