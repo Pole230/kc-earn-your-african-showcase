@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { UploadCloud, Film, Info, LogIn } from "lucide-react";
 import { toast } from "sonner";
@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { probeVideoFile } from "@/lib/video-probe";
 import type { Category } from "@/data/content";
+import type { Video } from "@/types/video";
+import type { Database } from "@/integrations/supabase/types";
 
 export const Route = createFileRoute("/upload")({
   head: () => ({
@@ -40,7 +42,43 @@ function Upload() {
   const [preview, setPreview] = useState<{ url: string | null; duration: number; blob: Blob | null } | null>(
     null,
   );
-  const [progress, setProgress] = useState<string | null>(null);
+  const [progressText, setProgressText] = useState<string | null>(null);
+  const [progressPercent, setProgressPercent] = useState<number | null>(null);
+  const [uploadStage, setUploadStage] = useState<
+    "idle" | "uploading" | "uploading-thumb" | "publishing" | "done" | "error"
+  >("idle");
+
+  // Fake progress updater to give user feedback while upload is in flight.
+  // It will increase up to 90% and wait for the real upload to finish.
+  useEffect(() => {
+    let timer: number | undefined;
+    if (uploadStage === "uploading") {
+      setProgressPercent(5);
+      timer = window.setInterval(() => {
+        setProgressPercent((p) => {
+          if (p === null) return 5;
+          const next = Math.min(90, p + Math.max(1, Math.round((100 - p) * 0.05)));
+          return next;
+        });
+      }, 700);
+    }
+    if (uploadStage === "uploading-thumb") {
+      setProgressPercent(92);
+    }
+    if (uploadStage === "publishing") {
+      setProgressPercent(96);
+    }
+    if (uploadStage === "done") {
+      setProgressPercent(100);
+      timer = window.setTimeout(() => setProgressPercent(null), 700);
+    }
+    if (uploadStage === "error") {
+      setProgressPercent(null);
+    }
+    return () => {
+      if (timer) window.clearInterval(timer);
+    };
+  }, [uploadStage]);
 
   async function onPick(selected: File | undefined) {
     if (!selected) return;
@@ -54,64 +92,97 @@ function Upload() {
     }
     setFile(selected);
     setPreview(null);
-    const probe = await probeVideoFile(selected);
-    setPreview({
-      url: probe.thumbnailPreview,
-      duration: probe.durationSeconds,
-      blob: probe.thumbnailBlob,
-    });
+    try {
+      const probe = await probeVideoFile(selected);
+      setPreview({
+        url: probe.thumbnailPreview,
+        duration: probe.durationSeconds,
+        blob: probe.thumbnailBlob,
+      });
+    } catch (err) {
+      console.error("probeVideoFile failed", err);
+      toast.error("Could not read video metadata");
+    }
   }
 
   async function publish() {
     if (!user || !file) return;
-    setProgress("Uploading video…");
+    setUploadStage("uploading");
+    setProgressText("Uploading video…");
+
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() ?? "mp4";
       const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const videoPath = `${user.id}/${stamp}.${ext}`;
 
+      // Upload video
       const { error: videoError } = await supabase.storage
         .from("videos")
         .upload(videoPath, file, { contentType: file.type, upsert: false });
       if (videoError) throw videoError;
 
+      setUploadStage("uploading-thumb");
+      setProgressText("Uploading cover image…");
+
       let thumbnailPath: string | null = null;
       if (preview?.blob) {
-        setProgress("Uploading cover image…");
         thumbnailPath = `${user.id}/${stamp}.jpg`;
         const { error: thumbError } = await supabase.storage
           .from("thumbnails")
           .upload(thumbnailPath, preview.blob, { contentType: "image/jpeg", upsert: false });
-        if (thumbError) thumbnailPath = null;
+        if (thumbError) {
+          // Log the thumbnail error but continue — thumbnail is optional
+          console.error("thumbnail upload failed", thumbError);
+          thumbnailPath = null;
+        }
       }
 
-      setProgress("Publishing…");
-      const { error: insertError } = await supabase.from("videos").insert({
-        user_id: user.id,
-        title: title.trim(),
-        description: description.trim() || null,
-        category,
-        video_path: videoPath,
-        thumbnail_path: thumbnailPath,
-        duration_seconds: preview?.duration ?? null,
-        status: "published",
-      });
+      setUploadStage("publishing");
+      setProgressText("Publishing…");
+
+      // Insert video record. Use Database-generated typing for the insert payload; store only permanent storage paths.
+      const { data: inserted, error: insertError } = await supabase
+        .from("videos")
+        .insert<Database['public']['Tables']['videos']['Insert']>([
+          {
+            user_id: user.id,
+            title: title.trim(),
+            description: description.trim() || null,
+            category,
+            video_path: videoPath,
+            thumbnail_path: thumbnailPath,
+            duration_seconds: preview?.duration ?? null,
+            status: "processing", // set to processing so a background job can transcode/validate
+          },
+        ])
+        .select()
+        .single();
+
       if (insertError) throw insertError;
 
+      // Refresh feed queries
       await queryClient.invalidateQueries({ queryKey: ["feed"] });
       await queryClient.invalidateQueries({ queryKey: ["my-videos"] });
-      toast.success("Video published", { description: "It's live in the KC Earn feed." });
+
+      setUploadStage("done");
+      setProgressText(null);
+
+      toast.success("Upload saved", { description: "Your video is being processed and will appear shortly." });
+
+      // reset form
       setFile(null);
       setPreview(null);
       setTitle("");
       setDescription("");
+
+      // Navigate to home or video page
       navigate({ to: "/" });
     } catch (err) {
-      toast.error("Upload failed", {
-        description: err instanceof Error ? err.message : "Please try again.",
-      });
-    } finally {
-      setProgress(null);
+      console.error("Upload failed", err);
+      setUploadStage("error");
+      setProgressText(null);
+      const message = err instanceof Error ? err.message : String(err);
+      toast.error("Upload failed", { description: message ?? "Please try again." });
     }
   }
 
@@ -138,7 +209,7 @@ function Upload() {
     );
   }
 
-  const busy = progress !== null;
+  const busy = uploadStage !== "idle" && uploadStage !== "done";
 
   return (
     <div className="px-5 pb-4">
@@ -156,9 +227,7 @@ function Upload() {
             <UploadCloud className="size-7" />
           </span>
         )}
-        <span className="line-clamp-1 text-base font-semibold">
-          {file?.name ?? "Select a video to upload"}
-        </span>
+        <span className="line-clamp-1 text-base font-semibold">{file?.name ?? "Select a video to upload"}</span>
         <span className="text-xs text-muted-foreground">MP4 or MOV · up to 200MB</span>
         <input
           type="file"
@@ -217,13 +286,25 @@ function Upload() {
           </p>
         </div>
 
+        {progressPercent !== null ? (
+          <div className="w-full">
+            <div className="mb-2 text-xs text-muted-foreground">{progressText ?? "Uploading..."}</div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-2 rounded-full bg-brand"
+                style={{ width: `${progressPercent}%`, transition: 'width 400ms linear' }}
+              />
+            </div>
+          </div>
+        ) : null}
+
         <button
           type="button"
           disabled={!file || title.trim() === "" || busy}
           onClick={publish}
           className="gradient-brand flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-brand-foreground shadow-lift disabled:opacity-40"
         >
-          <Film className="size-5" /> {progress ?? "Publish video"}
+          <Film className="size-5" /> {progressText ?? "Publish video"}
         </button>
       </div>
     </div>
