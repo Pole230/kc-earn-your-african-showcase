@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { BottomNav } from "@/components/BottomNav";
 import { Toaster } from "@/components/ui/sonner";
+import { KcEarnAiLauncher } from "@/components/ai/KcEarnAiLauncher";
 
 function NotFoundComponent() {
   return (
@@ -134,6 +135,8 @@ function RootComponent() {
         <Outlet />
       </div>
       <BottomNav />
+      <KcEarnAiLauncher />
+
       <Toaster position="top-center" />
     </QueryClientProvider>
   );
