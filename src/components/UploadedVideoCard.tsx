@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Heart, MessageCircle, Share2 } from "lucide-react";
 import { formatCount, formatDuration, timeAgo, type FeedVideo } from "@/lib/videos";
+import { recordVideoView } from "@/lib/monetization";
 
 function initials(name: string) {
   return name
