@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Bell, Sparkles } from "lucide-react";
+import { Bell, Sparkles, Wallet } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CategoryChips } from "@/components/CategoryChips";
