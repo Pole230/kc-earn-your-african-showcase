@@ -41,6 +41,51 @@ export type Database = {
         }
         Relationships: []
       }
+      earnings: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          note: string | null
+          source: Database["public"]["Enums"]["earning_source"]
+          user_id: string
+          video_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          source?: Database["public"]["Enums"]["earning_source"]
+          user_id: string
+          video_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          note?: string | null
+          source?: Database["public"]["Enums"]["earning_source"]
+          user_id?: string
+          video_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "earnings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "earnings_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -127,14 +172,116 @@ export type Database = {
           },
         ]
       }
+      wallets: {
+        Row: {
+          available_balance: number
+          created_at: string
+          currency: string
+          lifetime_earned: number
+          pending_balance: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          available_balance?: number
+          created_at?: string
+          currency?: string
+          lifetime_earned?: number
+          pending_balance?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          available_balance?: number
+          created_at?: string
+          currency?: string
+          lifetime_earned?: number
+          pending_balance?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      withdrawals: {
+        Row: {
+          amount: number
+          created_at: string
+          destination: string
+          id: string
+          method: string
+          note: string | null
+          status: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          destination: string
+          id?: string
+          method: string
+          note?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          destination?: string
+          id?: string
+          method?: string
+          note?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      request_withdrawal: {
+        Args: { _amount: number; _destination: string; _method: string }
+        Returns: {
+          amount: number
+          created_at: string
+          destination: string
+          id: string
+          method: string
+          note: string | null
+          status: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "withdrawals"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
+      earning_source: "views" | "engagement" | "bonus" | "referral"
       video_category:
         | "Funny"
         | "Music"
@@ -143,6 +290,7 @@ export type Database = {
         | "Learning"
         | "Serious Topics"
       video_status: "processing" | "published" | "removed"
+      withdrawal_status: "pending" | "processing" | "paid" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -270,6 +418,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      earning_source: ["views", "engagement", "bonus", "referral"],
       video_category: [
         "Funny",
         "Music",
@@ -279,6 +428,7 @@ export const Constants = {
         "Serious Topics",
       ],
       video_status: ["processing", "published", "removed"],
+      withdrawal_status: ["pending", "processing", "paid", "rejected"],
     },
   },
 } as const
