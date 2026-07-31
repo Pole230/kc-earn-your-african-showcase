@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Heart, MessageCircle, Share2 } from "lucide-react";
 import { formatCount, formatDuration, timeAgo, type FeedVideo } from "@/lib/videos";
+import { recordVideoView } from "@/lib/monetization";
 
 function initials(name: string) {
   return name
@@ -14,20 +15,55 @@ function initials(name: string) {
 
 export function UploadedVideoCard({ video }: { video: FeedVideo }) {
   const [playing, setPlaying] = useState(false);
+  const elRef = useRef<HTMLVideoElement | null>(null);
+  const watchedRef = useRef(0);
+  const lastTickRef = useRef(0);
+  const sentRef = useRef(false);
+
+  // Verified view engine: accumulate real watch time and submit once per mount.
+  const flush = () => {
+    const el = elRef.current;
+    if (sentRef.current || !el || watchedRef.current <= 0) return;
+    sentRef.current = true;
+    const duration = Number.isFinite(el.duration) && el.duration > 0 ? el.duration : null;
+    const percent = duration ? (watchedRef.current / duration) * 100 : 0;
+    void recordVideoView({
+      videoId: video.id,
+      watchSeconds: watchedRef.current,
+      percentWatched: percent,
+    });
+  };
+
+  useEffect(() => flush, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <article className="overflow-hidden rounded-3xl border border-border bg-card shadow-lift">
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-secondary">
         <video
+          ref={elRef}
           src={video.videoUrl ?? undefined}
           poster={video.thumbnailUrl ?? undefined}
           controls
           playsInline
           preload="metadata"
-          onPlay={() => setPlaying(true)}
-          onPause={() => setPlaying(false)}
+          onPlay={(e) => {
+            setPlaying(true);
+            lastTickRef.current = e.currentTarget.currentTime;
+          }}
+          onTimeUpdate={(e) => {
+            const t = e.currentTarget.currentTime;
+            const delta = t - lastTickRef.current;
+            if (delta > 0 && delta < 2) watchedRef.current += delta;
+            lastTickRef.current = t;
+          }}
+          onPause={() => {
+            setPlaying(false);
+            flush();
+          }}
+          onEnded={flush}
           className="size-full object-cover"
         />
+
         {!playing ? (
           <>
             <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-background/70 px-3 py-1 text-xs font-semibold backdrop-blur">
