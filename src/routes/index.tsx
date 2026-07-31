@@ -60,6 +60,15 @@ function Home() {
         </p>
       </div>
 
+      <Link
+        to="/dashboard"
+        className="mt-3 flex items-center gap-3 rounded-2xl border border-border bg-surface p-4"
+      >
+        <Wallet className="size-5 shrink-0 text-leaf" />
+        <span className="min-w-0 flex-1 text-sm font-semibold">Creator dashboard</span>
+        <span className="text-xs text-muted-foreground">Views · Earnings · Payouts</span>
+      </Link>
+
       <div className="sticky top-0 z-30 -mx-5 bg-background/90 px-5 py-4 backdrop-blur">
         <CategoryChips active={category} onSelect={setCategory} />
       </div>
