@@ -54,9 +54,9 @@ export async function recordVideoView(input: {
     _watch_seconds: Math.round(input.watchSeconds),
     _percent_watched: Math.max(0, Math.min(100, Number(input.percentWatched.toFixed(2)))),
     _device: detectDevice(),
-    _country: ctx.country,
-    _session_key: getSessionKey(),
-    _ip_hash: ctx.ipHash,
+    _country: ctx.country ?? undefined,
+    _session_key: getSessionKey() ?? undefined,
+    _ip_hash: ctx.ipHash ?? undefined,
   });
   if (error) {
     console.error("record_video_view failed", error);
