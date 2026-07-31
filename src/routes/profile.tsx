@@ -110,6 +110,15 @@ function Profile() {
           )}
         </div>
 
+        <Link
+          to="/dashboard"
+          className="mt-4 flex items-center gap-3 rounded-2xl border border-border bg-surface p-4"
+        >
+          <Wallet className="size-5 shrink-0 text-leaf" />
+          <span className="min-w-0 flex-1 text-sm font-semibold">Creator dashboard</span>
+          <span className="text-xs text-muted-foreground">Earnings & payouts</span>
+        </Link>
+
         {user ? (
           <section className="mt-6">
             <h2 className="text-sm font-semibold">My uploads</h2>
