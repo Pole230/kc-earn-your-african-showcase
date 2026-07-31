@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MapPin, Settings, Grid3x3, Bookmark, Trash2 } from "lucide-react";
+import { MapPin, Settings, Grid3x3, Bookmark, Trash2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { PROFILE, VIDEOS } from "@/data/content";
 import { useAuth } from "@/hooks/useAuth";
