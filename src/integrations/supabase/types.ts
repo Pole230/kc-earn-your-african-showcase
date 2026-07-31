@@ -14,6 +14,154 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_campaigns: {
+        Row: {
+          advertiser_id: string
+          budget: number
+          cost_per_click: number
+          cost_per_view: number
+          created_at: string
+          description: string | null
+          destination_url: string | null
+          ends_at: string | null
+          headline: string | null
+          id: string
+          media_path: string | null
+          name: string
+          spent: number
+          starts_at: string | null
+          status: Database["public"]["Enums"]["campaign_status"]
+          target_categories: Database["public"]["Enums"]["video_category"][]
+          target_countries: string[]
+          updated_at: string
+        }
+        Insert: {
+          advertiser_id: string
+          budget?: number
+          cost_per_click?: number
+          cost_per_view?: number
+          created_at?: string
+          description?: string | null
+          destination_url?: string | null
+          ends_at?: string | null
+          headline?: string | null
+          id?: string
+          media_path?: string | null
+          name: string
+          spent?: number
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["campaign_status"]
+          target_categories?: Database["public"]["Enums"]["video_category"][]
+          target_countries?: string[]
+          updated_at?: string
+        }
+        Update: {
+          advertiser_id?: string
+          budget?: number
+          cost_per_click?: number
+          cost_per_view?: number
+          created_at?: string
+          description?: string | null
+          destination_url?: string | null
+          ends_at?: string | null
+          headline?: string | null
+          id?: string
+          media_path?: string | null
+          name?: string
+          spent?: number
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["campaign_status"]
+          target_categories?: Database["public"]["Enums"]["video_category"][]
+          target_countries?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_campaigns_advertiser_id_fkey"
+            columns: ["advertiser_id"]
+            isOneToOne: false
+            referencedRelation: "advertisers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ad_events: {
+        Row: {
+          campaign_id: string
+          cost: number
+          country: string | null
+          created_at: string
+          device: string | null
+          event_type: Database["public"]["Enums"]["ad_event_type"]
+          id: string
+          viewer_id: string | null
+        }
+        Insert: {
+          campaign_id: string
+          cost?: number
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          event_type: Database["public"]["Enums"]["ad_event_type"]
+          id?: string
+          viewer_id?: string | null
+        }
+        Update: {
+          campaign_id?: string
+          cost?: number
+          country?: string | null
+          created_at?: string
+          device?: string | null
+          event_type?: Database["public"]["Enums"]["ad_event_type"]
+          id?: string
+          viewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_events_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "ad_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      advertisers: {
+        Row: {
+          company_name: string
+          contact_email: string
+          country: string | null
+          created_at: string
+          id: string
+          is_approved: boolean
+          owner_id: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          company_name: string
+          contact_email: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          owner_id: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          company_name?: string
+          contact_email?: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          is_approved?: boolean
+          owner_id?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       ai_messages: {
         Row: {
           client_message_id: string | null
@@ -86,6 +234,87 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["notification_kind"]
+          metadata: Json
+          read_at: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["notification_kind"]
+          metadata?: Json
+          read_at?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["notification_kind"]
+          metadata?: Json
+          read_at?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payout_config: {
+        Row: {
+          currency: string
+          daily_creator_limit: number
+          daily_login_reward: number
+          dedup_window_minutes: number
+          id: boolean
+          milestone_reward: number
+          min_watch_percent: number
+          min_watch_seconds: number
+          min_withdrawal: number
+          per_viewer_daily_limit: number
+          rate_per_view: number
+          referral_reward: number
+          updated_at: string
+        }
+        Insert: {
+          currency?: string
+          daily_creator_limit?: number
+          daily_login_reward?: number
+          dedup_window_minutes?: number
+          id?: boolean
+          milestone_reward?: number
+          min_watch_percent?: number
+          min_watch_seconds?: number
+          min_withdrawal?: number
+          per_viewer_daily_limit?: number
+          rate_per_view?: number
+          referral_reward?: number
+          updated_at?: string
+        }
+        Update: {
+          currency?: string
+          daily_creator_limit?: number
+          daily_login_reward?: number
+          dedup_window_minutes?: number
+          id?: boolean
+          milestone_reward?: number
+          min_watch_percent?: number
+          min_watch_seconds?: number
+          min_withdrawal?: number
+          per_viewer_daily_limit?: number
+          rate_per_view?: number
+          referral_reward?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -118,6 +347,113 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      reward_claims: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["reward_kind"]
+          reference: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["reward_kind"]
+          reference: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["reward_kind"]
+          reference?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      video_views: {
+        Row: {
+          country: string | null
+          created_at: string
+          creator_id: string
+          device: string | null
+          earned_amount: number
+          fraud_reason: string | null
+          id: string
+          ip_hash: string | null
+          is_valid: boolean
+          percent_watched: number
+          session_key: string | null
+          video_id: string
+          viewer_id: string | null
+          watch_seconds: number
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          creator_id: string
+          device?: string | null
+          earned_amount?: number
+          fraud_reason?: string | null
+          id?: string
+          ip_hash?: string | null
+          is_valid?: boolean
+          percent_watched?: number
+          session_key?: string | null
+          video_id: string
+          viewer_id?: string | null
+          watch_seconds?: number
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          creator_id?: string
+          device?: string | null
+          earned_amount?: number
+          fraud_reason?: string | null
+          id?: string
+          ip_hash?: string | null
+          is_valid?: boolean
+          percent_watched?: number
+          session_key?: string | null
+          video_id?: string
+          viewer_id?: string | null
+          watch_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_views_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       videos: {
         Row: {
@@ -259,6 +595,137 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_grant_reward: {
+        Args: {
+          _amount: number
+          _kind: Database["public"]["Enums"]["reward_kind"]
+          _note?: string
+          _reference: string
+          _user_id: string
+        }
+        Returns: Json
+      }
+      admin_platform_stats: { Args: never; Returns: Json }
+      admin_set_campaign_status: {
+        Args: {
+          _campaign_id: string
+          _status: Database["public"]["Enums"]["campaign_status"]
+        }
+        Returns: {
+          advertiser_id: string
+          budget: number
+          cost_per_click: number
+          cost_per_view: number
+          created_at: string
+          description: string | null
+          destination_url: string | null
+          ends_at: string | null
+          headline: string | null
+          id: string
+          media_path: string | null
+          name: string
+          spent: number
+          starts_at: string | null
+          status: Database["public"]["Enums"]["campaign_status"]
+          target_categories: Database["public"]["Enums"]["video_category"][]
+          target_countries: string[]
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "ad_campaigns"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_update_withdrawal: {
+        Args: {
+          _note?: string
+          _status: Database["public"]["Enums"]["withdrawal_status"]
+          _withdrawal_id: string
+        }
+        Returns: {
+          amount: number
+          created_at: string
+          destination: string
+          id: string
+          method: string
+          note: string | null
+          status: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "withdrawals"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      claim_daily_login: { Args: never; Returns: Json }
+      creator_analytics: { Args: { _user_id?: string }; Returns: Json }
+      credit_earning: {
+        Args: {
+          _amount: number
+          _note?: string
+          _source: Database["public"]["Enums"]["earning_source"]
+          _user_id: string
+          _video_id?: string
+        }
+        Returns: string
+      }
+      grant_reward: {
+        Args: {
+          _amount: number
+          _kind: Database["public"]["Enums"]["reward_kind"]
+          _note?: string
+          _reference: string
+          _user_id: string
+        }
+        Returns: Json
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      owns_advertiser: {
+        Args: { _advertiser_id: string; _user_id: string }
+        Returns: boolean
+      }
+      push_notification: {
+        Args: {
+          _body?: string
+          _kind: Database["public"]["Enums"]["notification_kind"]
+          _metadata?: Json
+          _title: string
+          _user_id: string
+        }
+        Returns: string
+      }
+      record_ad_event: {
+        Args: {
+          _campaign_id: string
+          _country?: string
+          _device?: string
+          _event_type: Database["public"]["Enums"]["ad_event_type"]
+        }
+        Returns: Json
+      }
+      record_video_view: {
+        Args: {
+          _country?: string
+          _device?: string
+          _ip_hash?: string
+          _percent_watched: number
+          _session_key?: string
+          _video_id: string
+          _watch_seconds: number
+        }
+        Returns: Json
+      }
       request_withdrawal: {
         Args: { _amount: number; _destination: string; _method: string }
         Returns: {
@@ -281,7 +748,34 @@ export type Database = {
       }
     }
     Enums: {
+      ad_event_type: "impression" | "click"
+      app_role: "admin" | "moderator" | "user"
+      campaign_status:
+        | "draft"
+        | "pending_review"
+        | "active"
+        | "paused"
+        | "completed"
+        | "rejected"
       earning_source: "views" | "engagement" | "bonus" | "referral"
+      notification_kind:
+        | "earning_credited"
+        | "withdrawal_requested"
+        | "withdrawal_approved"
+        | "withdrawal_rejected"
+        | "campaign_approved"
+        | "campaign_completed"
+        | "reward_received"
+        | "milestone_achieved"
+        | "system"
+      reward_kind:
+        | "daily_login"
+        | "referral"
+        | "milestone"
+        | "trending"
+        | "challenge"
+        | "event"
+        | "promo"
       video_category:
         | "Funny"
         | "Music"
@@ -418,7 +912,37 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      ad_event_type: ["impression", "click"],
+      app_role: ["admin", "moderator", "user"],
+      campaign_status: [
+        "draft",
+        "pending_review",
+        "active",
+        "paused",
+        "completed",
+        "rejected",
+      ],
       earning_source: ["views", "engagement", "bonus", "referral"],
+      notification_kind: [
+        "earning_credited",
+        "withdrawal_requested",
+        "withdrawal_approved",
+        "withdrawal_rejected",
+        "campaign_approved",
+        "campaign_completed",
+        "reward_received",
+        "milestone_achieved",
+        "system",
+      ],
+      reward_kind: [
+        "daily_login",
+        "referral",
+        "milestone",
+        "trending",
+        "challenge",
+        "event",
+        "promo",
+      ],
       video_category: [
         "Funny",
         "Music",
