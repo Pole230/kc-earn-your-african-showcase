@@ -62,17 +62,54 @@ export const Route = createFileRoute("/api/chat")({
 
           const uiMessages = messages as UIMessage[];
 
+          // Ensure there's a conversation for this user — find latest or create one.
+          let conversationId: string | null = null;
+          try {
+            const { data: existingConv, error: convErr } = await auth.supabase
+              .from("ai_conversations")
+              .select("id")
+              .eq("user_id", auth.userId)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (convErr) {
+              console.error("[kc-earn-ai] error fetching conversation", convErr);
+            }
+
+            if (existingConv && (existingConv as any).id) {
+              conversationId = (existingConv as any).id;
+            } else {
+              const { data: newConv, error: insertErr } = await auth.supabase
+                .from("ai_conversations")
+                .insert({ user_id: auth.userId, title: null })
+                .select("id")
+                .maybeSingle();
+              if (insertErr) {
+                console.error("[kc-earn-ai] failed to create conversation", insertErr);
+              } else if (newConv && (newConv as any).id) {
+                conversationId = (newConv as any).id;
+              }
+            }
+          } catch (err) {
+            console.error("[kc-earn-ai] conversation lookup/create failed", err);
+            // continue without conversation id
+          }
+
           // persist the last user message to memory for later analysis
           const last = uiMessages[uiMessages.length - 1];
 
           if (last?.role === "user") {
             try {
-              const { error } = await auth.supabase.from("ai_messages").insert({
+              const insertObj: any = {
                 user_id: auth.userId,
                 role: "user",
                 parts: last.parts as never,
                 client_message_id: last.id ?? null,
-              });
+              };
+              if (conversationId) insertObj.conversation_id = conversationId;
+
+              const { error } = await auth.supabase.from("ai_messages").insert(insertObj as any);
               if (error) console.error("[kc-earn-ai] failed to save user message", error);
             } catch (err) {
               console.error("[kc-earn-ai] failed to save user message (exception)", err);
@@ -94,12 +131,15 @@ export const Route = createFileRoute("/api/chat")({
                 if (!responseMessage) return;
                 const text = textOf(responseMessage);
                 if (!text) return;
-                const { error } = await auth.supabase.from("ai_messages").insert({
+                const insertObj: any = {
                   user_id: auth.userId,
                   role: "assistant",
                   parts: responseMessage.parts as never,
                   client_message_id: responseMessage.id ?? null,
-                });
+                };
+                if (conversationId) insertObj.conversation_id = conversationId;
+
+                const { error } = await auth.supabase.from("ai_messages").insert(insertObj as any);
                 if (error) console.error("[kc-earn-ai] failed to save assistant message", error);
               } catch (err) {
                 console.error("[kc-earn-ai] failed to save assistant message (exception)", err);
