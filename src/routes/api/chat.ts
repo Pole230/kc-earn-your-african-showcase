@@ -51,7 +51,14 @@ export const Route = createFileRoute("/api/chat")({
           }
 
           const key = process.env.LOVABLE_API_KEY;
-          if (!key) return new Response("AI is not configured", { status: 500 });
+          if (!key) {
+            // Server-side logging for operators; do not expose secrets or keys to clients.
+            console.error("[kc-earn-ai] missing LOVABLE_API_KEY environment variable");
+            return new Response(
+              "Server misconfiguration: AI provider not configured. Contact the site operator.",
+              { status: 500 },
+            );
+          }
 
           const uiMessages = messages as UIMessage[];
 
