@@ -34,7 +34,7 @@ function AuthScreen() {
     setBusy(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
           password,
           options: {
@@ -43,19 +43,47 @@ function AuthScreen() {
           },
         });
         if (error) throw error;
+
+        // If signUp returns a user but no session, they likely need email confirmation.
+        if (!data?.session) {
+          toast.success("Account created", {
+            description: "Check your email to confirm your account before signing in.",
+          });
+          // stay on auth screen so user can confirm email and then sign in
+          setBusy(false);
+          return;
+        }
+
         toast.success("Account created", { description: "You can start uploading now." });
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
         });
         if (error) throw error;
+
+        // If no session returned, provide a helpful message (email confirmation or other flow)
+        if (!data?.session) {
+          toast.error(
+            "Sign-in incomplete: please confirm your email or check your credentials.",
+          );
+          setBusy(false);
+          return;
+        }
+
         toast.success("Welcome back");
       }
       await router.invalidate();
       navigate({ to: "/upload" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Something went wrong");
+      // Improve error messages for common Supabase auth failures
+      const message =
+        err && typeof err === "object" && "error" in (err as any) && (err as any).error
+          ? (err as any).error
+          : err instanceof Error
+          ? err.message
+          : String(err);
+      toast.error(message || "Something went wrong");
     } finally {
       setBusy(false);
     }
