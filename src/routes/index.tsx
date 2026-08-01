@@ -4,9 +4,7 @@ import { Bell, Sparkles, Wallet } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CategoryChips } from "@/components/CategoryChips";
-import { VideoCard } from "@/components/VideoCard";
 import { UploadedVideoCard } from "@/components/UploadedVideoCard";
-import { VIDEOS } from "@/data/content";
 import { fetchFeed } from "@/lib/videos";
 
 export const Route = createFileRoute("/")({
@@ -30,12 +28,11 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const [category, setCategory] = useState("All");
-  const posts = category === "All" ? VIDEOS : VIDEOS.filter((v) => v.category === category);
+  // Use only real uploaded videos from Supabase. Remove mock/demo data.
   const { data: uploaded = [], isLoading } = useQuery({
     queryKey: ["feed", category],
     queryFn: () => fetchFeed(category),
   });
-
 
   return (
     <div className="px-5 pt-6">
@@ -74,19 +71,15 @@ function Home() {
       </div>
 
       <section className="space-y-5 pb-4">
-        {uploaded.map((video) => (
-          <UploadedVideoCard key={video.id} video={video} />
-        ))}
+        {/* Render only uploaded videos fetched from Supabase */}
         {isLoading ? (
           <div className="h-64 animate-pulse rounded-3xl border border-border bg-surface" />
-        ) : null}
-        {posts.map((post, i) => (
-          <VideoCard key={post.id} post={post} priority={i === 0 && uploaded.length === 0} />
-        ))}
-        {posts.length === 0 && uploaded.length === 0 && !isLoading ? (
-          <p className="py-16 text-center text-sm text-muted-foreground">
-            Nothing here yet in {category}.
-          </p>
+        ) : (
+          uploaded.map((video) => <UploadedVideoCard key={video.id} video={video} />)
+        )}
+
+        {!isLoading && uploaded.length === 0 ? (
+          <p className="py-16 text-center text-sm text-muted-foreground">Nothing here yet in {category}.</p>
         ) : null}
       </section>
 
