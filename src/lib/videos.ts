@@ -33,7 +33,7 @@ type Row = {
 const SELECT =
   "id,title,description,category,duration_seconds,views_count,created_at,status,user_id,video_path,thumbnail_path";
 
-async function signAll(bucket: string, paths: string[]) {
+export async function signAll(bucket: string, paths: string[]) {
   const map = new Map<string, string>();
   const unique = [...new Set(paths.filter(Boolean))];
   if (unique.length === 0) return map;
@@ -44,7 +44,7 @@ async function signAll(bucket: string, paths: string[]) {
   return map;
 }
 
-async function hydrate(rows: Row[]): Promise<FeedVideo[]> {
+export async function hydrate(rows: Row[]): Promise<FeedVideo[]> {
   const [videoUrls, thumbUrls] = await Promise.all([
     signAll(
       "videos",
