@@ -13,6 +13,7 @@ import {
   buildCoachPrompt,
   uiMessageFromText,
 } from "@/lib/ai-tools.server";
+import { getUserAiPreferences } from "@/lib/kc-ai-memory";
 
 type ToolBody = Record<string, unknown>;
 
@@ -89,6 +90,22 @@ async function handleTool(
   } catch (err) {
     console.error("[kc-earn-ai] invalid tool input", err);
     return new Response("Bad Request", { status: 400 });
+  }
+
+  // Fetch user preferences and augment prompt
+  try {
+    const prefs = await getUserAiPreferences(auth);
+    const prefParts: string[] = [];
+    if (prefs.preferred_language) prefParts.push(`Preferred language: ${prefs.preferred_language}`);
+    if (prefs.content_category) prefParts.push(`Preferred category: ${prefs.content_category}`);
+    if (prefs.audience) prefParts.push(`Audience: ${prefs.audience}`);
+    if (prefs.creator_style) prefParts.push(`Creator style: ${prefs.creator_style}`);
+    if (prefs.caption_tone) prefParts.push(`Preferred caption tone: ${prefs.caption_tone}`);
+    if (prefParts.length > 0) {
+      prompt += `\n\nUser preferences:\n- ${prefParts.join("\n- ")}`;
+    }
+  } catch (err) {
+    console.error("[kc-earn-ai] failed to load preferences", err);
   }
 
   // persist user message
