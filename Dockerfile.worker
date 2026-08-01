@@ -1,0 +1,30 @@
+# Worker Dockerfile for KC Earn video processor
+# Builds a minimal Node image with ffmpeg installed and runs the compiled worker
+# Usage:
+#  docker build -f Dockerfile.worker -t kc-earn-worker:latest .
+#  docker run --rm -e SUPABASE_URL=... -e SUPABASE_SERVICE_ROLE_KEY=... -e PROCESS_TRIGGER_SECRET=... kc-earn-worker:latest
+
+FROM node:20-slim
+
+ENV NODE_ENV=production
+
+# Install ffmpeg and ca-certificates
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ffmpeg ca-certificates curl \
+  && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy package files and install production deps
+COPY package.json package-lock.json ./
+RUN npm ci --production
+
+# Copy built project (expect `npm run build` produced `dist`)
+COPY dist ./dist
+
+# Create a non-root user to run the worker
+RUN useradd -m worker
+USER worker
+
+# Default command runs the poller. Use 'process <VIDEO_ID>' to run one-off processing.
+CMD ["node", "--input-type=module", "dist/integrations/video/worker.js", "start"]
