@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Heart, MessageCircle, Share2 } from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { formatCount, formatDuration, timeAgo, type FeedVideo } from "@/lib/videos";
 import { recordVideoView } from "@/lib/monetization";
 
@@ -19,6 +20,7 @@ export function UploadedVideoCard({ video }: { video: FeedVideo }) {
   const watchedRef = useRef(0);
   const lastTickRef = useRef(0);
   const sentRef = useRef(false);
+  const navigate = useNavigate();
 
   // Verified view engine: accumulate real watch time and submit once per mount.
   const flush = () => {
@@ -36,9 +38,13 @@ export function UploadedVideoCard({ video }: { video: FeedVideo }) {
 
   useEffect(() => flush, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const handleVideoClick = () => {
+    navigate({ to: "/video/$id", params: { id: video.id } });
+  };
+
   return (
     <article className="overflow-hidden rounded-3xl border border-border bg-card shadow-lift">
-      <div className="relative aspect-[4/5] w-full overflow-hidden bg-secondary">
+      <div className="relative aspect-[4/5] w-full overflow-hidden bg-secondary cursor-pointer group" onClick={handleVideoClick}>
         <video
           ref={elRef}
           src={video.videoUrl ?? undefined}
@@ -74,23 +80,24 @@ export function UploadedVideoCard({ video }: { video: FeedVideo }) {
                 {formatDuration(video.duration_seconds)}
               </span>
             ) : null}
-
           </>
         ) : null}
       </div>
 
       <div className="px-4 pt-3">
-        <h3 className="line-clamp-2 text-base font-semibold leading-snug">{video.title}</h3>
+        <h3 className="line-clamp-2 text-base font-semibold leading-snug cursor-pointer hover:text-brand transition-colors" onClick={handleVideoClick}>
+          {video.title}
+        </h3>
         {video.description ? (
           <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{video.description}</p>
         ) : null}
       </div>
 
       <div className="flex items-center gap-3 px-4 py-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-sm font-bold text-brand">
+        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-sm font-bold text-brand cursor-pointer hover:opacity-80 transition-opacity" onClick={handleVideoClick}>
           {initials(video.creator.display_name)}
         </span>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 cursor-pointer hover:opacity-80 transition-opacity" onClick={handleVideoClick}>
           <p className="truncate text-sm font-semibold">{video.creator.display_name}</p>
           <p className="truncate text-xs text-muted-foreground">
             {video.creator.location ? `${video.creator.location} · ` : ""}
@@ -100,13 +107,13 @@ export function UploadedVideoCard({ video }: { video: FeedVideo }) {
       </div>
 
       <div className="flex items-center gap-5 border-t border-border px-4 py-3 text-muted-foreground">
-        <button type="button" className="flex items-center gap-1.5 text-sm transition-colors hover:text-brand">
-          <Heart className="size-[18px]" /> 0
+        <button type="button" className="flex items-center gap-1.5 text-sm transition-colors hover:text-brand" onClick={() => navigate({ to: "/video/$id", params: { id: video.id } })}>
+          <Heart className="size-[18px]" /> {formatCount(video.views_count)}
         </button>
-        <button type="button" className="flex items-center gap-1.5 text-sm transition-colors hover:text-brand">
+        <button type="button" className="flex items-center gap-1.5 text-sm transition-colors hover:text-brand" onClick={() => navigate({ to: "/video/$id", params: { id: video.id } })}>
           <MessageCircle className="size-[18px]" /> 0
         </button>
-        <button type="button" className="ml-auto flex items-center gap-1.5 text-sm transition-colors hover:text-brand">
+        <button type="button" className="ml-auto flex items-center gap-1.5 text-sm transition-colors hover:text-brand" onClick={() => navigate({ to: "/video/$id", params: { id: video.id } })}>
           <Share2 className="size-[18px]" /> Share
         </button>
       </div>
