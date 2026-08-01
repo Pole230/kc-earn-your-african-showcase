@@ -70,10 +70,14 @@ function ChatPanel({
   userId,
   initialMessages,
   onClose,
+  prefs,
+  refetchPrefs,
 }: {
   userId: string;
   initialMessages: UIMessage[];
   onClose: () => void;
+  prefs: Record<string, any>;
+  refetchPrefs: () => void;
 }) {
   const queryClient = useQueryClient();
   const [input, setInput] = useState("");
@@ -138,37 +142,60 @@ function ChatPanel({
     try {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
-      if (!token) throw new Error('Not authenticated');
+      if (!token) throw new Error("Not authenticated");
 
-      // Use the same transport format: POST to endpoint with Authorization header
       const transport = new DefaultChatTransport({
         api: endpoint,
         headers: async () => ({ Authorization: `Bearer ${token}` }),
       });
 
-      // Create a UI message from the tool request so history persists client-side
-      const toolMessage = await transport.send({ text: JSON.stringify(payload) } as any);
+      await sendMessage({ text: JSON.stringify(payload), transport } as any);
 
-      // transport.send returns a promise that resolves when streaming completes in this SDK
-      // but useChat's sendMessage handles streaming into the existing messages list; to reuse that
-      // we instead call sendMessage with the payload text and a custom transport for this send.
-
-      // Use sendMessage to append user message and stream the assistant response
-      await sendMessage({ text: JSON.stringify(payload), transport });
-
-      // Optionally, invalidate server-side history so loadAiHistory sees new messages
       await queryClient.invalidateQueries(["ai-history", userId]);
     } catch (err: any) {
-      console.error('[kc-earn-ai] tool error', err);
-      toast.error(err?.message ?? 'Tool error');
+      console.error("[kc-earn-ai] tool error", err);
+      toast.error(err?.message ?? "Tool error");
     } finally {
       setToolLoading(null);
     }
   }
 
+  // Preferences save
+  const [localPrefs, setLocalPrefs] = useState<Record<string, any>>(prefs ?? {});
+  useEffect(() => setLocalPrefs(prefs ?? {}), [prefs]);
+  const [savingPrefs, setSavingPrefs] = useState(false);
+
+  async function savePreferences() {
+    setSavingPrefs(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) throw new Error("Not authenticated");
+      const res = await fetch("/api/ai/preferences", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(localPrefs),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body?.error ?? "Failed to save preferences");
+      }
+      toast.success("Preferences saved");
+      refetchPrefs();
+    } catch (err: any) {
+      console.error("[kc-earn-ai] save prefs error", err);
+      toast.error(err?.message ?? "Failed to save preferences");
+    } finally {
+      setSavingPrefs(false);
+    }
+  }
+
   return (
     <div className="flex h-full flex-col">
-      <header className="flex items-center gap-3 border-b border-border px-4 py-3">
+      <header className="flex items-start gap-3 border-b border-border px-4 py-3">
         <img
           src={aiLogo}
           alt=""
@@ -182,19 +209,33 @@ function ChatPanel({
           <p className="truncate text-[11px] text-muted-foreground">
             Create. Share. Earn. Powered by AI.
           </p>
+
+          {/* Preferences summary */}
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span>AI Preferences:</span>
+            <span className="rounded-md bg-muted px-2 py-1 text-[11px]">
+              {localPrefs.preferred_language ?? "Language: any"}
+            </span>
+            <span className="rounded-md bg-muted px-2 py-1 text-[11px]">
+              {localPrefs.content_category ?? "Category: any"}
+            </span>
+            <span className="rounded-md bg-muted px-2 py-1 text-[11px]">
+              {localPrefs.audience ?? "Audience: any"}
+            </span>
+          </div>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" onClick={() => callTool('/api/ai/tools/title', { topic: 'Lagos street food', category: 'Food' })} disabled={!!toolLoading}>
-            {toolLoading === '/api/ai/tools/title' ? 'Generating…' : 'Generate Title'}
+          <Button size="sm" onClick={() => callTool("/api/ai/tools/title", { topic: "Lagos street food", category: "Food" })} disabled={!!toolLoading}>
+            {toolLoading === "/api/ai/tools/title" ? "Generating…" : "Generate Title"}
           </Button>
-          <Button size="sm" onClick={() => callTool('/api/ai/tools/caption', { description: 'Vendor making suya with spices', mood: 'excited' })} disabled={!!toolLoading}>
-            {toolLoading === '/api/ai/tools/caption' ? 'Generating…' : 'Create Caption'}
+          <Button size="sm" onClick={() => callTool("/api/ai/tools/caption", { description: "Vendor making suya with spices", mood: "excited" })} disabled={!!toolLoading}>
+            {toolLoading === "/api/ai/tools/caption" ? "Generating…" : "Create Caption"}
           </Button>
-          <Button size="sm" onClick={() => callTool('/api/ai/tools/hashtags', { topic: 'suya street food', category: 'Food', region: 'Nigeria' })} disabled={!!toolLoading}>
-            {toolLoading === '/api/ai/tools/hashtags' ? 'Generating…' : 'Generate Hashtags'}
+          <Button size="sm" onClick={() => callTool("/api/ai/tools/hashtags", { topic: "suya street food", category: "Food", region: "Nigeria" })} disabled={!!toolLoading}>
+            {toolLoading === "/api/ai/tools/hashtags" ? "Generating…" : "Generate Hashtags"}
           </Button>
-          <Button size="sm" onClick={() => callTool('/api/ai/tools/coach', { focus: 'grow audience in West Africa', platform: 'short-form video' })} disabled={!!toolLoading}>
-            {toolLoading === '/api/ai/tools/coach' ? 'Generating…' : 'Creator Coach'}
+          <Button size="sm" onClick={() => callTool("/api/ai/tools/coach", { focus: "grow audience in West Africa", platform: "short-form video" })} disabled={!!toolLoading}>
+            {toolLoading === "/api/ai/tools/coach" ? "Generating…" : "Creator Coach"}
           </Button>
         </div>
         <Button
@@ -214,6 +255,95 @@ function ChatPanel({
           <X />
         </Button>
       </header>
+
+      {/* Preferences panel */}
+      <div className="border-b border-border px-4 py-3">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div>
+            <label className="text-xs text-muted-foreground">Language</label>
+            <select
+              value={localPrefs.preferred_language ?? ""}
+              onChange={(e) => setLocalPrefs((p) => ({ ...p, preferred_language: e.target.value }))}
+              className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
+            >
+              <option value="">Any</option>
+              <option value="English">English</option>
+              <option value="Pidgin">Pidgin</option>
+              <option value="Swahili">Swahili</option>
+              <option value="French">French</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs text-muted-foreground">Content category</label>
+            <select
+              value={localPrefs.content_category ?? ""}
+              onChange={(e) => setLocalPrefs((p) => ({ ...p, content_category: e.target.value }))}
+              className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
+            >
+              <option value="">Any</option>
+              <option value="Comedy">Comedy</option>
+              <option value="Food">Food</option>
+              <option value="Music">Music</option>
+              <option value="Education">Education</option>
+              <option value="Lifestyle">Lifestyle</option>
+              <option value="Business">Business</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs text-muted-foreground">Audience</label>
+            <select
+              value={localPrefs.audience ?? ""}
+              onChange={(e) => setLocalPrefs((p) => ({ ...p, audience: e.target.value }))}
+              className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
+            >
+              <option value="">Any</option>
+              <option value="Nigeria">Nigeria</option>
+              <option value="Africa">Africa</option>
+              <option value="Global">Global</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs text-muted-foreground">Creator style</label>
+            <select
+              value={localPrefs.creator_style ?? ""}
+              onChange={(e) => setLocalPrefs((p) => ({ ...p, creator_style: e.target.value }))}
+              className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
+            >
+              <option value="">Any</option>
+              <option value="Funny">Funny</option>
+              <option value="Professional">Professional</option>
+              <option value="Emotional">Emotional</option>
+              <option value="Educational">Educational</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs text-muted-foreground">Caption tone</label>
+            <select
+              value={localPrefs.caption_tone ?? ""}
+              onChange={(e) => setLocalPrefs((p) => ({ ...p, caption_tone: e.target.value }))}
+              className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
+            >
+              <option value="">Any</option>
+              <option value="Viral">Viral</option>
+              <option value="Simple">Simple</option>
+              <option value="Storytelling">Storytelling</option>
+            </select>
+          </div>
+
+          <div className="flex items-end">
+            <Button onClick={savePreferences} disabled={savingPrefs}>
+              {savingPrefs ? "Saving…" : "Save preferences"}
+            </Button>
+            <Button variant="ghost" onClick={() => setLocalPrefs(prefs ?? {})} className="ml-2">
+              Reset
+            </Button>
+          </div>
+        </div>
+      </div>
 
       <Conversation className="flex-1">
         <ConversationContent className="gap-4 px-4 py-4">
@@ -282,7 +412,27 @@ export function KcEarnAiPanel({ onClose }: { onClose: () => void }) {
     staleTime: Infinity,
   });
 
-  if (loading || (user && isLoading)) {
+  const {
+    data: prefs,
+    isLoading: prefsLoading,
+    refetch: refetchPrefs,
+  } = useQuery({
+    queryKey: ["ai-prefs", user?.id],
+    queryFn: async () => {
+      if (!user) return {} as Record<string, any>;
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      const res = await fetch("/api/ai/preferences", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) return {};
+      return (await res.json()) as Record<string, any>;
+    },
+    enabled: Boolean(user),
+    staleTime: Infinity,
+  });
+
+  if (loading || (user && isLoading) || prefsLoading) {
     return (
       <div className="grid h-full place-items-center">
         <Loader2 className="size-6 animate-spin text-brand" />
@@ -318,6 +468,8 @@ export function KcEarnAiPanel({ onClose }: { onClose: () => void }) {
       userId={user.id}
       initialMessages={initialMessages}
       onClose={onClose}
+      prefs={prefs ?? {}}
+      refetchPrefs={() => refetchPrefs()}
     />
   );
 }
