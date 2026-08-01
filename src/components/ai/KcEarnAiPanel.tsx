@@ -94,8 +94,8 @@ function ChatPanel({
       const message = err.message?.includes("429")
         ? "KC Earn AI is busy right now — try again in a moment."
         : err.message?.includes("402")
-          ? "AI credits are exhausted. Please top up to keep chatting."
-          : "KC Earn AI couldn't respond. Please try again.";
+        ? "AI credits are exhausted. Please top up to keep chatting."
+        : "KC Earn AI couldn't respond. Please try again.";
       toast.error(message);
     },
   });
@@ -130,6 +130,42 @@ function ChatPanel({
     void sendMessage({ text: value });
   };
 
+  // Tool helpers
+  const [toolLoading, setToolLoading] = useState<null | string>(null);
+
+  async function callTool(endpoint: string, payload: object) {
+    setToolLoading(endpoint);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) throw new Error('Not authenticated');
+
+      // Use the same transport format: POST to endpoint with Authorization header
+      const transport = new DefaultChatTransport({
+        api: endpoint,
+        headers: async () => ({ Authorization: `Bearer ${token}` }),
+      });
+
+      // Create a UI message from the tool request so history persists client-side
+      const toolMessage = await transport.send({ text: JSON.stringify(payload) } as any);
+
+      // transport.send returns a promise that resolves when streaming completes in this SDK
+      // but useChat's sendMessage handles streaming into the existing messages list; to reuse that
+      // we instead call sendMessage with the payload text and a custom transport for this send.
+
+      // Use sendMessage to append user message and stream the assistant response
+      await sendMessage({ text: JSON.stringify(payload), transport });
+
+      // Optionally, invalidate server-side history so loadAiHistory sees new messages
+      await queryClient.invalidateQueries(["ai-history", userId]);
+    } catch (err: any) {
+      console.error('[kc-earn-ai] tool error', err);
+      toast.error(err?.message ?? 'Tool error');
+    } finally {
+      setToolLoading(null);
+    }
+  }
+
   return (
     <div className="flex h-full flex-col">
       <header className="flex items-center gap-3 border-b border-border px-4 py-3">
@@ -146,6 +182,20 @@ function ChatPanel({
           <p className="truncate text-[11px] text-muted-foreground">
             Create. Share. Earn. Powered by AI.
           </p>
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" onClick={() => callTool('/api/ai/tools/title', { topic: 'Lagos street food', category: 'Food' })} disabled={!!toolLoading}>
+            {toolLoading === '/api/ai/tools/title' ? 'Generating…' : 'Generate Title'}
+          </Button>
+          <Button size="sm" onClick={() => callTool('/api/ai/tools/caption', { description: 'Vendor making suya with spices', mood: 'excited' })} disabled={!!toolLoading}>
+            {toolLoading === '/api/ai/tools/caption' ? 'Generating…' : 'Create Caption'}
+          </Button>
+          <Button size="sm" onClick={() => callTool('/api/ai/tools/hashtags', { topic: 'suya street food', category: 'Food', region: 'Nigeria' })} disabled={!!toolLoading}>
+            {toolLoading === '/api/ai/tools/hashtags' ? 'Generating…' : 'Generate Hashtags'}
+          </Button>
+          <Button size="sm" onClick={() => callTool('/api/ai/tools/coach', { focus: 'grow audience in West Africa', platform: 'short-form video' })} disabled={!!toolLoading}>
+            {toolLoading === '/api/ai/tools/coach' ? 'Generating…' : 'Creator Coach'}
+          </Button>
         </div>
         <Button
           variant="ghost"
