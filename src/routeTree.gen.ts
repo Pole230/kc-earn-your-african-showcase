@@ -17,7 +17,11 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiVideosTriggerProcessRouteImport } from './routes/api/videos/trigger-process'
 import { Route as ApiPublicViewContextRouteImport } from './routes/api/public/view-context'
+import { Route as ApiAiToolsRouteImport } from './routes/api/ai/tools'
+import { Route as ApiAiPreferencesRouteImport } from './routes/api/ai/preferences'
+import { Route as ApiAiAnalyticsRouteImport } from './routes/api/ai/analytics'
 
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
@@ -59,9 +63,29 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiVideosTriggerProcessRoute = ApiVideosTriggerProcessRouteImport.update({
+  id: '/api/videos/trigger-process',
+  path: '/api/videos/trigger-process',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicViewContextRoute = ApiPublicViewContextRouteImport.update({
   id: '/api/public/view-context',
   path: '/api/public/view-context',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiToolsRoute = ApiAiToolsRouteImport.update({
+  id: '/api/ai/tools',
+  path: '/api/ai/tools',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiPreferencesRoute = ApiAiPreferencesRouteImport.update({
+  id: '/api/ai/preferences',
+  path: '/api/ai/preferences',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiAnalyticsRoute = ApiAiAnalyticsRouteImport.update({
+  id: '/api/ai/analytics',
+  path: '/api/ai/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -74,7 +98,11 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/upload': typeof UploadRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/ai/analytics': typeof ApiAiAnalyticsRoute
+  '/api/ai/preferences': typeof ApiAiPreferencesRoute
+  '/api/ai/tools': typeof ApiAiToolsRoute
   '/api/public/view-context': typeof ApiPublicViewContextRoute
+  '/api/videos/trigger-process': typeof ApiVideosTriggerProcessRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -85,7 +113,11 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/upload': typeof UploadRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/ai/analytics': typeof ApiAiAnalyticsRoute
+  '/api/ai/preferences': typeof ApiAiPreferencesRoute
+  '/api/ai/tools': typeof ApiAiToolsRoute
   '/api/public/view-context': typeof ApiPublicViewContextRoute
+  '/api/videos/trigger-process': typeof ApiVideosTriggerProcessRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -97,7 +129,11 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/upload': typeof UploadRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/ai/analytics': typeof ApiAiAnalyticsRoute
+  '/api/ai/preferences': typeof ApiAiPreferencesRoute
+  '/api/ai/tools': typeof ApiAiToolsRoute
   '/api/public/view-context': typeof ApiPublicViewContextRoute
+  '/api/videos/trigger-process': typeof ApiVideosTriggerProcessRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -110,7 +146,11 @@ export interface FileRouteTypes {
     | '/profile'
     | '/upload'
     | '/api/chat'
+    | '/api/ai/analytics'
+    | '/api/ai/preferences'
+    | '/api/ai/tools'
     | '/api/public/view-context'
+    | '/api/videos/trigger-process'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -121,7 +161,11 @@ export interface FileRouteTypes {
     | '/profile'
     | '/upload'
     | '/api/chat'
+    | '/api/ai/analytics'
+    | '/api/ai/preferences'
+    | '/api/ai/tools'
     | '/api/public/view-context'
+    | '/api/videos/trigger-process'
   id:
     | '__root__'
     | '/'
@@ -132,7 +176,11 @@ export interface FileRouteTypes {
     | '/profile'
     | '/upload'
     | '/api/chat'
+    | '/api/ai/analytics'
+    | '/api/ai/preferences'
+    | '/api/ai/tools'
     | '/api/public/view-context'
+    | '/api/videos/trigger-process'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -144,7 +192,11 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   UploadRoute: typeof UploadRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiAiAnalyticsRoute: typeof ApiAiAnalyticsRoute
+  ApiAiPreferencesRoute: typeof ApiAiPreferencesRoute
+  ApiAiToolsRoute: typeof ApiAiToolsRoute
   ApiPublicViewContextRoute: typeof ApiPublicViewContextRoute
+  ApiVideosTriggerProcessRoute: typeof ApiVideosTriggerProcessRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -205,11 +257,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/videos/trigger-process': {
+      id: '/api/videos/trigger-process'
+      path: '/api/videos/trigger-process'
+      fullPath: '/api/videos/trigger-process'
+      preLoaderRoute: typeof ApiVideosTriggerProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/view-context': {
       id: '/api/public/view-context'
       path: '/api/public/view-context'
       fullPath: '/api/public/view-context'
       preLoaderRoute: typeof ApiPublicViewContextRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/tools': {
+      id: '/api/ai/tools'
+      path: '/api/ai/tools'
+      fullPath: '/api/ai/tools'
+      preLoaderRoute: typeof ApiAiToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/preferences': {
+      id: '/api/ai/preferences'
+      path: '/api/ai/preferences'
+      fullPath: '/api/ai/preferences'
+      preLoaderRoute: typeof ApiAiPreferencesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/analytics': {
+      id: '/api/ai/analytics'
+      path: '/api/ai/analytics'
+      fullPath: '/api/ai/analytics'
+      preLoaderRoute: typeof ApiAiAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -224,8 +304,22 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   UploadRoute: UploadRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiAiAnalyticsRoute: ApiAiAnalyticsRoute,
+  ApiAiPreferencesRoute: ApiAiPreferencesRoute,
+  ApiAiToolsRoute: ApiAiToolsRoute,
   ApiPublicViewContextRoute: ApiPublicViewContextRoute,
+  ApiVideosTriggerProcessRoute: ApiVideosTriggerProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
