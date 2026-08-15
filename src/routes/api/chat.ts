@@ -116,11 +116,67 @@ export const Route = createFileRoute("/api/chat")({
             }
           }
 
+          // Load authenticated creator earnings context for KC AI.
+          // Read-only queries only; withdrawal operations are never exposed to the AI.
+          let creatorContext = "";
+          try {
+            const { data: wallet, error: walletError } = await auth.supabase
+              .from("wallets")
+              .select("available_balance,pending_balance,lifetime_earned,currency")
+              .eq("user_id", auth.userId)
+              .maybeSingle();
+
+            if (walletError) {
+              console.error("[kc-earn-ai] failed to load wallet", walletError);
+            }
+
+            const { data: earnings, error: earningsError } = await auth.supabase
+              .from("earnings")
+              .select("amount,source,note,created_at")
+              .eq("user_id", auth.userId)
+              .order("created_at", { ascending: false })
+              .limit(20);
+
+            if (earningsError) {
+              console.error("[kc-earn-ai] failed to load earnings", earningsError);
+            }
+
+            const currency = wallet?.currency ?? "USD";
+            const available = Number(wallet?.available_balance ?? 0);
+            const pending = Number(wallet?.pending_balance ?? 0);
+            const lifetime = Number(wallet?.lifetime_earned ?? 0);
+
+            const recentEarnings = (earnings ?? []).map((row) => ({
+              amount: Number(row.amount ?? 0),
+              source: row.source,
+              note: row.note,
+              date: row.created_at,
+            }));
+
+            creatorContext = `
+AUTHENTICATED CREATOR EARNINGS CONTEXT:
+- Currency: ${currency}
+- Available wallet balance: ${available.toFixed(2)}
+- Pending balance: ${pending.toFixed(2)}
+- Lifetime earned: ${lifetime.toFixed(2)}
+- Recent earnings: ${JSON.stringify(recentEarnings)}
+
+Use these values when the creator asks about their own balance, earnings, or recent earning activity.
+These values belong only to the authenticated creator. Never reveal another user's financial information.
+Never invent or estimate financial values that are not present in this context.
+Do not initiate, approve, or claim to have processed withdrawals.
+`;
+          } catch (err) {
+            console.error("[kc-earn-ai] failed to load creator earnings context", err);
+          }
+
           const gateway = createLovableAiGatewayProvider(key);
 
           const result = streamText({
             model: gateway("google/gemini-3.6-flash"),
-            system: KC_EARN_AI_SYSTEM_PROMPT,
+            system: `${KC_EARN_AI_SYSTEM_PROMPT}
+
+${creatorContext}`,
             messages: await convertToModelMessages(uiMessages),
           });
 

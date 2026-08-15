@@ -9,53 +9,28 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as UploadRouteImport } from './routes/upload'
-import { Route as ProfileRouteImport } from './routes/profile'
-import { Route as NotificationsRouteImport } from './routes/notifications'
-import { Route as McpRouteImport } from './routes/mcp'
-import { Route as ExploreRouteImport } from './routes/explore'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiChatRouteImport } from './routes/api/chat'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ExploreRouteImport } from './routes/explore'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as UploadRouteImport } from './routes/upload'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
-import { Route as ApiVideosTriggerProcessRouteImport } from './routes/api/videos/trigger-process'
-import { Route as ApiPublicViewContextRouteImport } from './routes/api/public/view-context'
-import { Route as ApiAiToolsRouteImport } from './routes/api/ai/tools'
-import { Route as ApiAiPreferencesRouteImport } from './routes/api/ai/preferences'
-import { Route as ApiAiAnalyticsRouteImport } from './routes/api/ai/analytics'
-import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as ApiChatRouteImport } from './routes/api/chat'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as ApiAiAnalyticsRouteImport } from './routes/api/ai/analytics'
+import { Route as ApiAiPreferencesRouteImport } from './routes/api/ai/preferences'
+import { Route as ApiAiToolsRouteImport } from './routes/api/ai/tools'
+import { Route as ApiPublicViewContextRouteImport } from './routes/api/public/view-context'
+import { Route as ApiVideosTriggerProcessRouteImport } from './routes/api/videos/trigger-process'
 
-const UploadRoute = UploadRouteImport.update({
-  id: '/upload',
-  path: '/upload',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProfileRoute = ProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NotificationsRoute = NotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ExploreRoute = ExploreRouteImport.update({
-  id: '/explore',
-  path: '/explore',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -63,51 +38,56 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiChatRoute = ApiChatRouteImport.update({
-  id: '/api/chat',
-  path: '/api/chat',
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UploadRoute = UploadRouteImport.update({
+  id: '/upload',
+  path: '/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91DotmcpChar93ListToolsRoute =
   Char91DotmcpChar93ListToolsRouteImport.update({
     id: '/.mcp/list-tools',
     path: '/.mcp/list-tools',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiVideosTriggerProcessRoute = ApiVideosTriggerProcessRouteImport.update({
-  id: '/api/videos/trigger-process',
-  path: '/api/videos/trigger-process',
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiChatRoute = ApiChatRouteImport.update({
+  id: '/api/chat',
+  path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicViewContextRoute = ApiPublicViewContextRouteImport.update({
-  id: '/api/public/view-context',
-  path: '/api/public/view-context',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAiToolsRoute = ApiAiToolsRouteImport.update({
-  id: '/api/ai/tools',
-  path: '/api/ai/tools',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAiPreferencesRoute = ApiAiPreferencesRouteImport.update({
-  id: '/api/ai/preferences',
-  path: '/api/ai/preferences',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAiAnalyticsRoute = ApiAiAnalyticsRouteImport.update({
-  id: '/api/ai/analytics',
-  path: '/api/ai/analytics',
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
@@ -116,9 +96,29 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
-const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
-  id: '/.lovable/oauth/consent',
-  path: '/.lovable/oauth/consent',
+const ApiAiAnalyticsRoute = ApiAiAnalyticsRouteImport.update({
+  id: '/api/ai/analytics',
+  path: '/api/ai/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiPreferencesRoute = ApiAiPreferencesRouteImport.update({
+  id: '/api/ai/preferences',
+  path: '/api/ai/preferences',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAiToolsRoute = ApiAiToolsRouteImport.update({
+  id: '/api/ai/tools',
+  path: '/api/ai/tools',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicViewContextRoute = ApiPublicViewContextRouteImport.update({
+  id: '/api/public/view-context',
+  path: '/api/public/view-context',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVideosTriggerProcessRoute = ApiVideosTriggerProcessRouteImport.update({
+  id: '/api/videos/trigger-process',
+  path: '/api/videos/trigger-process',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -269,46 +269,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/upload': {
-      id: '/upload'
-      path: '/upload'
-      fullPath: '/upload'
-      preLoaderRoute: typeof UploadRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/profile': {
-      id: '/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof ProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/notifications': {
-      id: '/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof NotificationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/explore': {
-      id: '/explore'
-      path: '/explore'
-      fullPath: '/explore'
-      preLoaderRoute: typeof ExploreRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -318,25 +283,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/chat': {
-      id: '/api/chat'
-      path: '/api/chat'
-      fullPath: '/api/chat'
-      preLoaderRoute: typeof ApiChatRouteImport
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/upload': {
+      id: '/upload'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof UploadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/list-tools': {
@@ -346,39 +332,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/videos/trigger-process': {
-      id: '/api/videos/trigger-process'
-      path: '/api/videos/trigger-process'
-      fullPath: '/api/videos/trigger-process'
-      preLoaderRoute: typeof ApiVideosTriggerProcessRouteImport
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/view-context': {
-      id: '/api/public/view-context'
-      path: '/api/public/view-context'
-      fullPath: '/api/public/view-context'
-      preLoaderRoute: typeof ApiPublicViewContextRouteImport
+    '/api/chat': {
+      id: '/api/chat'
+      path: '/api/chat'
+      fullPath: '/api/chat'
+      preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/ai/tools': {
-      id: '/api/ai/tools'
-      path: '/api/ai/tools'
-      fullPath: '/api/ai/tools'
-      preLoaderRoute: typeof ApiAiToolsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/ai/preferences': {
-      id: '/api/ai/preferences'
-      path: '/api/ai/preferences'
-      fullPath: '/api/ai/preferences'
-      preLoaderRoute: typeof ApiAiPreferencesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/ai/analytics': {
-      id: '/api/ai/analytics'
-      path: '/api/ai/analytics'
-      fullPath: '/api/ai/analytics'
-      preLoaderRoute: typeof ApiAiAnalyticsRouteImport
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/invoke-tool/$tool': {
@@ -388,11 +360,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.lovable/oauth/consent': {
-      id: '/.lovable/oauth/consent'
-      path: '/.lovable/oauth/consent'
-      fullPath: '/.lovable/oauth/consent'
-      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+    '/api/ai/analytics': {
+      id: '/api/ai/analytics'
+      path: '/api/ai/analytics'
+      fullPath: '/api/ai/analytics'
+      preLoaderRoute: typeof ApiAiAnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/preferences': {
+      id: '/api/ai/preferences'
+      path: '/api/ai/preferences'
+      fullPath: '/api/ai/preferences'
+      preLoaderRoute: typeof ApiAiPreferencesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ai/tools': {
+      id: '/api/ai/tools'
+      path: '/api/ai/tools'
+      fullPath: '/api/ai/tools'
+      preLoaderRoute: typeof ApiAiToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/view-context': {
+      id: '/api/public/view-context'
+      path: '/api/public/view-context'
+      fullPath: '/api/public/view-context'
+      preLoaderRoute: typeof ApiPublicViewContextRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/videos/trigger-process': {
+      id: '/api/videos/trigger-process'
+      path: '/api/videos/trigger-process'
+      fullPath: '/api/videos/trigger-process'
+      preLoaderRoute: typeof ApiVideosTriggerProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
