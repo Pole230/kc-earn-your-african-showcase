@@ -4,7 +4,7 @@ type AuthContext = { supabase: import("@supabase/supabase-js").SupabaseClient<Da
 
 export async function getUserAiPreferences(auth: AuthContext): Promise<Record<string, any>> {
   try {
-    const { data, error } = await auth.supabase
+    const { data, error } = await (auth.supabase as any)
       .from("ai_user_preferences")
       .select("key, value")
       .eq("user_id", auth.userId);
@@ -38,7 +38,7 @@ export async function setUserAiPreference(auth: AuthContext, key: string, value:
       updated_at: new Date().toISOString(),
     } as any;
 
-    const { error } = await auth.supabase
+    const { error } = await (auth.supabase as any)
       .from("ai_user_preferences")
       .upsert([payload], { onConflict: "user_id,key" });
 
@@ -62,7 +62,7 @@ export async function updateUserAiPreferences(auth: AuthContext, prefs: Record<s
       updated_at: new Date().toISOString(),
     }));
     if (rows.length === 0) return { ok: true };
-    const { error } = await auth.supabase.from("ai_user_preferences").upsert(rows, { onConflict: "user_id,key" });
+    const { error } = await (auth.supabase as any).from("ai_user_preferences").upsert(rows, { onConflict: "user_id,key" });
     if (error) {
       console.error("[kc-earn-ai] failed to update preferences", error);
       return { error };

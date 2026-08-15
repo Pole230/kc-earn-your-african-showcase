@@ -8,7 +8,7 @@ export const loadAiHistory = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<StoredAiMessage[]> => {
     // Find the user's most recent conversation
     try {
-      const { data: convRow, error: convErr } = await context.supabase
+      const { data: convRow, error: convErr } = await (context.supabase as any)
         .from("ai_conversations")
         .select("id")
         .eq("user_id", context.userId)
@@ -22,14 +22,14 @@ export const loadAiHistory = createServerFn({ method: "GET" })
         return [];
       }
 
-      const conversationId = convRow?.id ?? null;
+      const conversationId = (convRow as any)?.id ?? null;
 
       if (!conversationId) {
         // No conversation yet — return empty history so the UI shows the welcome state
         return [];
       }
 
-      const { data, error } = await context.supabase
+      const { data, error } = await (context.supabase as any)
         .from("ai_messages")
         .select("id,role,parts,created_at")
         .eq("conversation_id", conversationId)
@@ -41,12 +41,12 @@ export const loadAiHistory = createServerFn({ method: "GET" })
         return [];
       }
 
-      return (data ?? [])
+      return ((data ?? []) as any[])
         .filter((row) => row.role === "user" || row.role === "assistant")
         .map((row) => {
           const parts = Array.isArray(row.parts) ? row.parts : [];
           const text = parts
-            .map((part) =>
+            .map((part: any) =>
               part && typeof part === "object" && "type" in part && part.type === "text"
                 ? String((part as { text?: unknown }).text ?? "")
                 : "",

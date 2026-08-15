@@ -6,6 +6,14 @@ import { lovable } from "@/integrations/lovable/index";
 import { ScreenHeader } from "@/components/ScreenHeader";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>): { next?: string } => {
+    const value = s.next;
+    const safe =
+      typeof value === "string" && value.startsWith("/") && !value.startsWith("//")
+        ? value
+        : undefined;
+    return safe ? { next: safe } : {};
+  },
   head: () => ({
     meta: [
       { title: "Sign in to KC Earn" },
@@ -23,6 +31,16 @@ export const Route = createFileRoute("/auth")({
 function AuthScreen() {
   const navigate = useNavigate();
   const router = useRouter();
+  const { next } = Route.useSearch();
+  const returnTo = next ? `${window.location.origin}${next}` : window.location.origin;
+
+  function goAfterAuth() {
+    if (next) {
+      window.location.href = next;
+      return;
+    }
+    navigate({ to: "/upload" });
+  }
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,7 +56,7 @@ function AuthScreen() {
           email: email.trim(),
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: returnTo,
             data: { display_name: displayName.trim() || email.split("@")[0] },
           },
         });
@@ -74,7 +92,7 @@ function AuthScreen() {
         toast.success("Welcome back");
       }
       await router.invalidate();
-      navigate({ to: "/upload" });
+      goAfterAuth();
     } catch (err) {
       // Improve error messages for common Supabase auth failures
       const message =
@@ -91,7 +109,7 @@ function AuthScreen() {
 
   async function google() {
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: returnTo,
     });
     if (result.error) {
       toast.error("Google sign-in failed");
@@ -99,7 +117,7 @@ function AuthScreen() {
     }
     if (result.redirected) return;
     await router.invalidate();
-    navigate({ to: "/upload" });
+    goAfterAuth();
   }
 
   const input =

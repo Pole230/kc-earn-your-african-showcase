@@ -95,7 +95,7 @@ export async function generateAnalyticsAiResponse(key: string | undefined, summa
     model: gateway("google/gemini-3.6-flash"),
     system: "You are KC Earn Analytics Assistant. Keep answers short and actionable.",
     messages: await convertToModelMessages([
-      { id: `analytics-${Date.now()}`, role: "user", parts: [{ type: "text", text: prompt }] },
+      { role: "user", parts: [{ type: "text", text: prompt }] },
     ]),
   });
   return result;

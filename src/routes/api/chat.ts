@@ -65,7 +65,7 @@ export const Route = createFileRoute("/api/chat")({
           // Ensure there's a conversation for this user — find latest or create one.
           let conversationId: string | null = null;
           try {
-            const { data: existingConv, error: convErr } = await auth.supabase
+            const { data: existingConv, error: convErr } = await (auth.supabase as any)
               .from("ai_conversations")
               .select("id")
               .eq("user_id", auth.userId)
@@ -80,7 +80,7 @@ export const Route = createFileRoute("/api/chat")({
             if (existingConv && (existingConv as any).id) {
               conversationId = (existingConv as any).id;
             } else {
-              const { data: newConv, error: insertErr } = await auth.supabase
+              const { data: newConv, error: insertErr } = await (auth.supabase as any)
                 .from("ai_conversations")
                 .insert({ user_id: auth.userId, title: null })
                 .select("id")
