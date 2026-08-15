@@ -12,16 +12,21 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as ApiVideosTriggerProcessRouteImport } from './routes/api/videos/trigger-process'
 import { Route as ApiPublicViewContextRouteImport } from './routes/api/public/view-context'
 import { Route as ApiAiToolsRouteImport } from './routes/api/ai/tools'
 import { Route as ApiAiPreferencesRouteImport } from './routes/api/ai/preferences'
 import { Route as ApiAiAnalyticsRouteImport } from './routes/api/ai/analytics'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
@@ -36,6 +41,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const NotificationsRoute = NotificationsRouteImport.update({
   id: '/notifications',
   path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExploreRoute = ExploreRouteImport.update({
@@ -63,6 +73,18 @@ const ApiChatRoute = ApiChatRouteImport.update({
   path: '/api/chat',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiVideosTriggerProcessRoute = ApiVideosTriggerProcessRouteImport.update({
   id: '/api/videos/trigger-process',
   path: '/api/videos/trigger-process',
@@ -88,16 +110,32 @@ const ApiAiAnalyticsRoute = ApiAiAnalyticsRouteImport.update({
   path: '/api/ai/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
+  '/mcp': typeof McpRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/upload': typeof UploadRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/ai/analytics': typeof ApiAiAnalyticsRoute
   '/api/ai/preferences': typeof ApiAiPreferencesRoute
   '/api/ai/tools': typeof ApiAiToolsRoute
@@ -109,10 +147,15 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
+  '/mcp': typeof McpRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/upload': typeof UploadRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/ai/analytics': typeof ApiAiAnalyticsRoute
   '/api/ai/preferences': typeof ApiAiPreferencesRoute
   '/api/ai/tools': typeof ApiAiToolsRoute
@@ -125,10 +168,15 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/dashboard': typeof DashboardRoute
   '/explore': typeof ExploreRoute
+  '/mcp': typeof McpRoute
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/upload': typeof UploadRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/ai/analytics': typeof ApiAiAnalyticsRoute
   '/api/ai/preferences': typeof ApiAiPreferencesRoute
   '/api/ai/tools': typeof ApiAiToolsRoute
@@ -142,10 +190,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/explore'
+    | '/mcp'
     | '/notifications'
     | '/profile'
     | '/upload'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/api/chat'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/ai/analytics'
     | '/api/ai/preferences'
     | '/api/ai/tools'
@@ -157,10 +210,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/explore'
+    | '/mcp'
     | '/notifications'
     | '/profile'
     | '/upload'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/api/chat'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/ai/analytics'
     | '/api/ai/preferences'
     | '/api/ai/tools'
@@ -172,10 +230,15 @@ export interface FileRouteTypes {
     | '/auth'
     | '/dashboard'
     | '/explore'
+    | '/mcp'
     | '/notifications'
     | '/profile'
     | '/upload'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/api/chat'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/api/ai/analytics'
     | '/api/ai/preferences'
     | '/api/ai/tools'
@@ -188,10 +251,15 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DashboardRoute: typeof DashboardRoute
   ExploreRoute: typeof ExploreRoute
+  McpRoute: typeof McpRoute
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   UploadRoute: typeof UploadRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiChatRoute: typeof ApiChatRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiAiAnalyticsRoute: typeof ApiAiAnalyticsRoute
   ApiAiPreferencesRoute: typeof ApiAiPreferencesRoute
   ApiAiToolsRoute: typeof ApiAiToolsRoute
@@ -220,6 +288,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/explore': {
@@ -257,6 +332,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiChatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/videos/trigger-process': {
       id: '/api/videos/trigger-process'
       path: '/api/videos/trigger-process'
@@ -292,6 +381,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAiAnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -300,10 +403,16 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DashboardRoute: DashboardRoute,
   ExploreRoute: ExploreRoute,
+  McpRoute: McpRoute,
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   UploadRoute: UploadRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiChatRoute: ApiChatRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiAiAnalyticsRoute: ApiAiAnalyticsRoute,
   ApiAiPreferencesRoute: ApiAiPreferencesRoute,
   ApiAiToolsRoute: ApiAiToolsRoute,

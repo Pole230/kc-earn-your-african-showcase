@@ -151,7 +151,7 @@ function ChatPanel({
 
       await sendMessage({ text: JSON.stringify(payload), transport } as any);
 
-      await queryClient.invalidateQueries(["ai-history", userId]);
+      await queryClient.invalidateQueries({ queryKey: ["ai-history", userId] });
     } catch (err: any) {
       console.error("[kc-earn-ai] tool error", err);
       toast.error(err?.message ?? "Tool error");

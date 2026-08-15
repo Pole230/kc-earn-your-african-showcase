@@ -32,7 +32,7 @@ export const Route = createFileRoute("/api/ai/analytics")({
           if (!auth) return new Response("Unauthorized", { status: 401 });
 
           // Simple aggregation of analytics rows for user
-          const { data, error } = await auth.supabase
+          const { data, error } = await (auth.supabase as any)
             .from("ai_creator_analytics")
             .select(
               "id,video_id,views,likes,comments,shares,watch_time,completion_rate,created_at",
@@ -82,7 +82,7 @@ export const Route = createFileRoute("/api/ai/analytics")({
 
           const body = (await request.json()) as { video_id?: string; focus?: string };
 
-          const { data, error } = await auth.supabase
+          const { data, error } = await (auth.supabase as any)
             .from("ai_creator_analytics")
             .select("id,video_id,views,likes,comments,shares,watch_time,completion_rate,created_at")
             .eq("user_id", auth.userId)
@@ -121,7 +121,7 @@ export const Route = createFileRoute("/api/ai/analytics")({
           // create/find conversation and persist user message
           let conversationId: string | null = null;
           try {
-            const { data: existingConv, error: convErr } = await auth.supabase
+            const { data: existingConv, error: convErr } = await (auth.supabase as any)
               .from("ai_conversations")
               .select("id")
               .eq("user_id", auth.userId)
@@ -132,7 +132,7 @@ export const Route = createFileRoute("/api/ai/analytics")({
             if (convErr) console.error("[kc-earn-ai] conv lookup error", convErr);
             if (existingConv && (existingConv as any).id) conversationId = (existingConv as any).id;
             else {
-              const { data: newConv, error: insertErr } = await auth.supabase
+              const { data: newConv, error: insertErr } = await (auth.supabase as any)
                 .from("ai_conversations")
                 .insert({ user_id: auth.userId, title: "Performance analysis" })
                 .select("id")

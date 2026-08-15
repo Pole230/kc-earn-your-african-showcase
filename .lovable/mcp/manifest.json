@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "sdk_version": "0.26.2",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://kdcynqebpryaxmvizqwi.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "kc-earn-your-african-showcase",
+      "version": "0.1.0",
+      "title": "KC Earn: Your African Showcase"
+    },
+    "tools": [
+      {
+        "name": "browse_feed",
+        "title": "Browse KC Earn feed",
+        "description": "Browse published KC Earn videos, optionally filtered by category and sorted by newest or most viewed.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "description": "Category filter: Funny, Music, Experience, Sports, Learning, Serious Topics."
+            },
+            "sort": {
+              "type": "string",
+              "enum": [
+                "newest",
+                "most_viewed"
+              ],
+              "description": "Sort order (default newest)."
+            },
+            "limit": {
+              "type": "integer",
+              "description": "How many videos to return (default 20, max 50)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_my_videos",
+        "title": "List my videos",
+        "description": "List the signed-in KC Earn creator's uploaded videos with title, category, status and view count.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "description": "How many videos to return (default 20, max 50)."
+            },
+            "category": {
+              "type": "string",
+              "description": "Optional category filter: Funny, Music, Experience, Sports, Learning, Serious Topics."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_wallet_summary",
+        "title": "Get wallet summary",
+        "description": "Get the signed-in KC Earn creator's wallet: available balance, pending balance and lifetime earnings.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_recent_earnings",
+        "title": "List recent earnings",
+        "description": "List the signed-in KC Earn creator's most recent earning events (amount, source and date).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "description": "How many entries to return (default 20, max 100)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_notifications",
+        "title": "List notifications",
+        "description": "List the signed-in KC Earn user's recent notifications, newest first.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "limit": {
+              "type": "integer",
+              "description": "How many notifications to return (default 20, max 50)."
+            },
+            "unread_only": {
+              "type": "boolean",
+              "description": "Return only unread notifications."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
