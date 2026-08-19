@@ -3,6 +3,8 @@ name: CI - feature/video-upload
 on:
   push:
     branches: ["main", "feature/video-upload"]
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:
 
 permissions: read-all
@@ -19,7 +21,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: '20'
           cache: npm
 
       - name: Install dependencies
