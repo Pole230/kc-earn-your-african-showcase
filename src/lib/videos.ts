@@ -37,10 +37,22 @@ export async function signAll(bucket: string, paths: string[]) {
   const map = new Map<string, string>();
   const unique = [...new Set(paths.filter(Boolean))];
   if (unique.length === 0) return map;
-  const { data } = await supabase.storage.from(bucket).createSignedUrls(unique, 60 * 60);
-  data?.forEach((item) => {
-    if (item.signedUrl && item.path) map.set(item.path, item.signedUrl);
-  });
+  
+  try {
+    const { data, error } = await supabase.storage.from(bucket).createSignedUrls(unique, 60 * 60);
+    
+    if (error) {
+      console.error(`Failed to create signed URLs for bucket "${bucket}":`, error);
+      return map;
+    }
+    
+    data?.forEach((item) => {
+      if (item.signedUrl && item.path) map.set(item.path, item.signedUrl);
+    });
+  } catch (err) {
+    console.error(`Exception creating signed URLs for bucket "${bucket}":`, err);
+  }
+  
   return map;
 }
 
