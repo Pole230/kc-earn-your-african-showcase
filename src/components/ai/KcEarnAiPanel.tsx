@@ -32,12 +32,23 @@ const SUGGESTIONS = [
   "How do I grow my audience across Africa?",
 ];
 
-function speakWelcome(text: string) {
+function prepareSpeech() {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.resume();
+}
+
+function speakText(text: string) {
+  if (typeof window === "undefined" || !window.speechSynthesis || !text.trim()) return;
+  prepareSpeech();
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.volume = 1;
   window.speechSynthesis.speak(utterance);
+}
+
+function speakWelcome(text: string) {
+  speakText(text);
 }
 
 function WelcomeScreen({
@@ -106,6 +117,8 @@ function ChatPanel({
   const queryClient = useQueryClient();
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const speechPendingRef = useRef(false);
+  const spokenMessageIdsRef = useRef(new Set<string>());
 
   const { messages, sendMessage, status, setMessages, error } = useChat({
     id: `kc-earn-ai-${userId}`,
@@ -140,6 +153,36 @@ function ChatPanel({
     if (status === "ready") focusInput();
   }, [status]);
 
+  useEffect(() => {
+    const initializeSpeech = () => prepareSpeech();
+    document.addEventListener("pointerdown", initializeSpeech, { passive: true });
+    document.addEventListener("keydown", initializeSpeech);
+    document.addEventListener("touchstart", initializeSpeech, { passive: true });
+    return () => {
+      document.removeEventListener("pointerdown", initializeSpeech);
+      document.removeEventListener("keydown", initializeSpeech);
+      document.removeEventListener("touchstart", initializeSpeech);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (status !== "ready" || !speechPendingRef.current) return;
+    const assistantMessage = [...messages]
+      .reverse()
+      .find((message) => message.role === "assistant");
+    if (!assistantMessage || spokenMessageIdsRef.current.has(assistantMessage.id)) return;
+
+    const responseText = assistantMessage.parts
+      .map((part) => (part.type === "text" ? part.text : ""))
+      .join("")
+      .trim();
+    if (!responseText) return;
+
+    speechPendingRef.current = false;
+    spokenMessageIdsRef.current.add(assistantMessage.id);
+    speakText(responseText);
+  }, [messages, status]);
+
   const clearMutation = useMutation({
     mutationFn: () => clearAiHistory(),
     onSuccess: () => {
@@ -154,6 +197,8 @@ function ChatPanel({
   const submit = (text: string) => {
     const value = text.trim();
     if (!value || busy) return;
+    speechPendingRef.current = true;
+    prepareSpeech();
     setInput("");
     void sendMessage({ text: value });
   };
@@ -163,6 +208,8 @@ function ChatPanel({
 
   async function callTool(endpoint: string, payload: object) {
     setToolLoading(endpoint);
+    speechPendingRef.current = true;
+    prepareSpeech();
     try {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
