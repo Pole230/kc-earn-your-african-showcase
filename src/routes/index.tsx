@@ -5,7 +5,8 @@ import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CategoryChips } from "@/components/CategoryChips";
 import { UploadedVideoCard } from "@/components/UploadedVideoCard";
-import { fetchFeed } from "@/lib/videos";
+import { fetchFeed, type ExternalFeedVideo } from "@/lib/videos";
+import { ExternalVideoCard } from "@/components/ExternalVideoCard";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -75,14 +76,24 @@ function Home() {
         {isLoading ? (
           <div className="h-64 animate-pulse rounded-3xl border border-border bg-surface" />
         ) : (
-          uploaded.map((video) => <UploadedVideoCard key={video.id} video={video} />)
+          uploaded.map((video) =>
+            "source" in video && video.source === "external" ? (
+              <ExternalVideoCard key={video.id} video={video as ExternalFeedVideo} />
+            ) : (
+              <UploadedVideoCard
+                key={video.id}
+                video={video as Exclude<typeof video, ExternalFeedVideo>}
+              />
+            ),
+          )
         )}
 
         {!isLoading && uploaded.length === 0 ? (
-          <p className="py-16 text-center text-sm text-muted-foreground">Nothing here yet in {category}.</p>
+          <p className="py-16 text-center text-sm text-muted-foreground">
+            Nothing here yet in {category}.
+          </p>
         ) : null}
       </section>
-
     </div>
   );
 }

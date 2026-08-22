@@ -234,6 +234,134 @@ export type Database = {
           },
         ]
       }
+      external_ingestion_config: {
+        Row: {
+          id: boolean
+          automatic_ingestion_enabled: boolean
+          user_upload_priority: number
+          max_external_feed_ratio: number
+          external_content_limit: number
+          ingestion_frequency_minutes: number
+          approved_categories: string[]
+          supported_countries: string[]
+          enabled_providers: string[]
+          updated_at: string
+        }
+        Insert: {
+          id?: boolean
+          automatic_ingestion_enabled?: boolean
+          user_upload_priority?: number
+          max_external_feed_ratio?: number
+          external_content_limit?: number
+          ingestion_frequency_minutes?: number
+          approved_categories?: string[]
+          supported_countries?: string[]
+          enabled_providers?: string[]
+          updated_at?: string
+        }
+        Update: {
+          id?: boolean
+          automatic_ingestion_enabled?: boolean
+          user_upload_priority?: number
+          max_external_feed_ratio?: number
+          external_content_limit?: number
+          ingestion_frequency_minutes?: number
+          approved_categories?: string[]
+          supported_countries?: string[]
+          enabled_providers?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      external_ingestion_runs: {
+        Row: {
+          id: string
+          provider: string
+          started_at: string
+          finished_at: string | null
+          discovered_count: number
+          imported_count: number
+          unavailable_count: number
+          error_message: string | null
+        }
+        Insert: {
+          id?: string
+          provider: string
+          started_at?: string
+          finished_at?: string | null
+          discovered_count?: number
+          imported_count?: number
+          unavailable_count?: number
+          error_message?: string | null
+        }
+        Update: {
+          id?: string
+          provider?: string
+          started_at?: string
+          finished_at?: string | null
+          discovered_count?: number
+          imported_count?: number
+          unavailable_count?: number
+          error_message?: string | null
+        }
+        Relationships: []
+      }
+      external_videos: {
+        Row: {
+          id: string
+          source_platform: string
+          original_content_id: string
+          original_url: string
+          creator_name: string
+          creator_attribution: string
+          thumbnail_url: string | null
+          embed_url: string | null
+          title: string
+          description: string | null
+          category: Database["public"]["Enums"]["video_category"]
+          published_at: string | null
+          ingested_at: string
+          authorization_type: string
+          external_status: string
+          last_synced_at: string | null
+          country_code: string | null
+          language_code: string | null
+          source_metadata: Json
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          source_platform: string
+          original_content_id: string
+          original_url: string
+          creator_name: string
+          creator_attribution: string
+          thumbnail_url?: string | null
+          embed_url?: string | null
+          title: string
+          description?: string | null
+          category: Database["public"]["Enums"]["video_category"]
+          published_at?: string | null
+          ingested_at?: string
+          authorization_type: string
+          external_status?: string
+          last_synced_at?: string | null
+          country_code?: string | null
+          language_code?: string | null
+          source_metadata?: Json
+          updated_at?: string
+        }
+        Update: {
+          external_status?: string
+          last_synced_at?: string | null
+          updated_at?: string
+          title?: string
+          description?: string | null
+          thumbnail_url?: string | null
+          embed_url?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string | null

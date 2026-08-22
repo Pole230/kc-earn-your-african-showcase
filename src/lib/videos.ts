@@ -16,6 +16,20 @@ export type FeedVideo = {
   creator: { display_name: string; username: string | null; location: string | null };
 };
 
+export type ExternalFeedVideo = {
+  id: string;
+  source: "external";
+  source_platform: string;
+  original_url: string;
+  title: string;
+  description: string | null;
+  category: Category;
+  published_at: string | null;
+  thumbnailUrl: string | null;
+  embedUrl: string;
+  creator: { display_name: string; location: string | null };
+};
+
 type Row = {
   id: string;
   title: string;
@@ -37,22 +51,22 @@ export async function signAll(bucket: string, paths: string[]) {
   const map = new Map<string, string>();
   const unique = [...new Set(paths.filter(Boolean))];
   if (unique.length === 0) return map;
-  
+
   try {
     const { data, error } = await supabase.storage.from(bucket).createSignedUrls(unique, 60 * 60);
-    
+
     if (error) {
       console.error(`Failed to create signed URLs for bucket "${bucket}":`, error);
       return map;
     }
-    
+
     data?.forEach((item) => {
       if (item.signedUrl && item.path) map.set(item.path, item.signedUrl);
     });
   } catch (err) {
     console.error(`Exception creating signed URLs for bucket "${bucket}":`, err);
   }
-  
+
   return map;
 }
 
@@ -70,7 +84,10 @@ export async function hydrate(rows: Row[]): Promise<FeedVideo[]> {
 
   // Fetch creator profiles explicitly using user_id so we don't depend on a DB relationship name
   const userIds = [...new Set(rows.map((r) => r.user_id).filter(Boolean))];
-  const profilesMap = new Map<string, { display_name: string; username: string | null; location: string | null }>();
+  const profilesMap = new Map<
+    string,
+    { display_name: string; username: string | null; location: string | null }
+  >();
   if (userIds.length > 0) {
     const { data: profilesData, error: profilesError } = await supabase
       .from("profiles")
@@ -80,8 +97,12 @@ export async function hydrate(rows: Row[]): Promise<FeedVideo[]> {
       // If profiles cannot be fetched due to RLS or other issues, fall back to defaults.
       console.error("Failed to fetch profiles for feed hydrate:", profilesError);
     } else {
-      profilesData?.forEach((p: any) => {
-        profilesMap.set(p.id, { display_name: p.display_name, username: p.username ?? null, location: p.location ?? null });
+      profilesData?.forEach((p) => {
+        profilesMap.set(p.id, {
+          display_name: p.display_name,
+          username: p.username ?? null,
+          location: p.location ?? null,
+        });
       });
     }
   }
@@ -118,7 +139,40 @@ export async function fetchFeed(category?: string) {
 
   const { data, error } = await query;
   if (error) throw error;
-  return hydrate((data ?? []) as unknown as Row[]);
+  const uploads = await hydrate((data ?? []) as unknown as Row[]);
+  const externalQuery = supabase
+    .from("external_videos")
+    .select(
+      "id,source_platform,original_url,title,description,category,published_at,thumbnail_url,embed_url,creator_name,country_code",
+    )
+    .eq("external_status", "active")
+    .not("embed_url", "is", null)
+    .order("published_at", { ascending: false })
+    .limit(3);
+  const { data: externalData } =
+    category && category !== "All"
+      ? await externalQuery.eq("category", category as Category)
+      : await externalQuery;
+  const external = (externalData ?? []).flatMap((video) =>
+    video.embed_url
+      ? [
+          {
+            id: `external:${video.source_platform}:${video.id}`,
+            source: "external" as const,
+            source_platform: video.source_platform,
+            original_url: video.original_url,
+            title: video.title,
+            description: video.description,
+            category: video.category,
+            published_at: video.published_at,
+            thumbnailUrl: video.thumbnail_url,
+            embedUrl: video.embed_url,
+            creator: { display_name: video.creator_name, location: video.country_code },
+          },
+        ]
+      : [],
+  );
+  return [...uploads, ...external] as Array<FeedVideo | ExternalFeedVideo>;
 }
 
 // New: fetch a page of feed items for infinite scrolling. Returns up to `limit` items
