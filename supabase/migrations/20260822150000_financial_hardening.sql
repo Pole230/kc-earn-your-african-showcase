@@ -44,13 +44,22 @@ CREATE POLICY financial_controls_admin_read ON public.platform_financial_control
 GRANT SELECT ON public.platform_financial_controls TO authenticated;
 
 -- Legacy client-side writes would bypass eligibility and idempotency rules.
-DROP POLICY IF EXISTS "creators_insert_own" ON public.creator_earnings;
-DROP POLICY IF EXISTS "creators_update_own" ON public.creator_earnings;
-DROP POLICY IF EXISTS "creators_delete_own" ON public.creator_earnings;
+DO $$ BEGIN
+  IF to_regclass('public.creator_earnings') IS NOT NULL THEN
+    DROP POLICY IF EXISTS "creators_insert_own" ON public.creator_earnings;
+    DROP POLICY IF EXISTS "creators_update_own" ON public.creator_earnings;
+    DROP POLICY IF EXISTS "creators_delete_own" ON public.creator_earnings;
+  END IF;
+END $$;
 DROP POLICY IF EXISTS "Users can insert their own earnings" ON public.earnings;
 DROP POLICY IF EXISTS "Users can update their own earnings" ON public.earnings;
 DROP POLICY IF EXISTS "Users can delete their own earnings" ON public.earnings;
-REVOKE INSERT, UPDATE, DELETE ON public.earnings, public.creator_earnings FROM authenticated, anon;
+REVOKE INSERT, UPDATE, DELETE ON public.earnings FROM authenticated, anon;
+DO $$ BEGIN
+  IF to_regclass('public.creator_earnings') IS NOT NULL THEN
+    REVOKE INSERT, UPDATE, DELETE ON public.creator_earnings FROM authenticated, anon;
+  END IF;
+END $$;
 REVOKE INSERT, UPDATE, DELETE ON public.wallets, public.wallet_ledger FROM authenticated, anon;
 
 -- Replace the legacy wallet trigger with a ledger-backed real-earnings credit.

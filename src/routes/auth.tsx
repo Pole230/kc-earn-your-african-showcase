@@ -44,6 +44,7 @@ function AuthScreen() {
   }
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
@@ -53,12 +54,15 @@ function AuthScreen() {
     setBusy(true);
     try {
       if (mode === "signup") {
+        if (!/^\+[1-9]\d{7,14}$/.test(phone.trim().replace(/[\s().-]/g, ""))) {
+          throw new Error("Use an international phone number, for example +2348012345678");
+        }
         const { data, error } = await supabase.auth.signUp({
-          email: email.trim(),
+          email: email.trim().toLowerCase(),
           password,
           options: {
             emailRedirectTo: returnTo,
-            data: { display_name: displayName.trim() || email.split("@")[0] },
+            data: { display_name: displayName.trim() || email.split("@")[0], phone: phone.trim() },
           },
         });
         if (error) throw error;
@@ -83,9 +87,7 @@ function AuthScreen() {
 
         // If no session returned, provide a helpful message (email confirmation or other flow)
         if (!data?.session) {
-          toast.error(
-            "Sign-in incomplete: please confirm your email or check your credentials.",
-          );
+          toast.error("Sign-in incomplete: please confirm your email or check your credentials.");
           setBusy(false);
           return;
         }
@@ -96,12 +98,7 @@ function AuthScreen() {
       goAfterAuth();
     } catch (err) {
       // Improve error messages for common Supabase auth failures
-      const message =
-        err && typeof err === "object" && "error" in (err as any) && (err as any).error
-          ? (err as any).error
-          : err instanceof Error
-          ? err.message
-          : String(err);
+      const message = err instanceof Error ? err.message : String(err);
       toast.error(message || "Something went wrong");
     } finally {
       setBusy(false);
@@ -165,6 +162,17 @@ function AuthScreen() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
+        {mode === "signup" ? (
+          <input
+            className={input}
+            type="tel"
+            required
+            placeholder="Phone number (+234...)"
+            autoComplete="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+        ) : null}
         <input
           className={input}
           type="password"
