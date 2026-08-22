@@ -36,7 +36,6 @@ function NotFoundComponent() {
     </div>
   );
 }
-
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
@@ -130,7 +129,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="mx-auto min-h-screen w-full max-w-md bg-background pb-28">
+      <div className="mx-auto min-h-screen w-full max-w-2xl bg-background/90 pb-28 shadow-[0_0_80px_oklch(0.04_0.01_45_/_0.45)]">
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </div>

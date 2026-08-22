@@ -20,10 +20,10 @@ export function CategoryChips({
           type="button"
           onClick={() => onSelect(value)}
           className={cn(
-            "shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
+            "shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-all",
             active === value
-              ? "border-transparent bg-brand text-brand-foreground"
-              : "border-border bg-surface text-muted-foreground hover:text-foreground",
+              ? "border-transparent bg-brand text-brand-foreground shadow-[0_6px_18px_oklch(0.72_0.17_55_/_0.18)]"
+              : "border-border/80 bg-surface/80 text-muted-foreground hover:border-brand/50 hover:text-foreground",
           )}
         >
           {value}

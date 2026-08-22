@@ -48,7 +48,7 @@ function Profile() {
 
   return (
     <div className="pb-4">
-      <div className="gradient-brand h-28 w-full" />
+      <div className="gradient-brand h-32 w-full sm:h-40" />
 
       <div className="px-5">
         <div className="-mt-10 flex items-end gap-4">
@@ -64,7 +64,7 @@ function Profile() {
           </button>
         </div>
 
-        <h1 className="mt-3 text-2xl font-bold">{PROFILE.name}</h1>
+        <h1 className="mt-3 text-3xl font-bold tracking-tight">{PROFILE.name}</h1>
         <p className="text-sm text-muted-foreground">{PROFILE.handle}</p>
         <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
           <MapPin className="size-4 shrink-0" /> {PROFILE.location}
@@ -73,7 +73,7 @@ function Profile() {
 
         <div className="mt-5 grid grid-cols-3 gap-3">
           {Object.entries(PROFILE.stats).map(([label, value]) => (
-            <div key={label} className="rounded-2xl border border-border bg-card py-3 text-center">
+            <div key={label} className="rounded-2xl border border-border/80 bg-card py-3 text-center shadow-lift">
               <p className="text-lg font-bold">{value}</p>
               <p className="text-xs capitalize text-muted-foreground">{label}</p>
             </div>

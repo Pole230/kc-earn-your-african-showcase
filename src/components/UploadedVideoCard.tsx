@@ -37,7 +37,7 @@ export function UploadedVideoCard({ video }: { video: FeedVideo }) {
   useEffect(() => flush, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <article className="overflow-hidden rounded-3xl border border-border bg-card shadow-lift">
+    <article className="overflow-hidden rounded-3xl border border-border/80 bg-card shadow-lift transition-transform hover:-translate-y-0.5">
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-secondary">
         <video
           ref={elRef}
@@ -79,14 +79,14 @@ export function UploadedVideoCard({ video }: { video: FeedVideo }) {
         ) : null}
       </div>
 
-      <div className="px-4 pt-3">
+      <div className="px-5 pt-4">
         <h3 className="line-clamp-2 text-base font-semibold leading-snug">{video.title}</h3>
         {video.description ? (
           <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{video.description}</p>
         ) : null}
       </div>
 
-      <div className="flex items-center gap-3 px-4 py-3">
+      <div className="flex items-center gap-3 px-5 py-4">
         <span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-sm font-bold text-brand">
           {initials(video.creator.display_name)}
         </span>
@@ -99,7 +99,7 @@ export function UploadedVideoCard({ video }: { video: FeedVideo }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-5 border-t border-border px-4 py-3 text-muted-foreground">
+      <div className="flex items-center gap-5 border-t border-border/80 px-5 py-3.5 text-muted-foreground">
         <button type="button" className="flex items-center gap-1.5 text-sm transition-colors hover:text-brand">
           <Heart className="size-[18px]" /> 0
         </button>

@@ -146,26 +146,26 @@ function DashboardContent({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="px-5 pb-4">
+    <div className="px-5 pb-4 sm:px-8">
       <ScreenHeader
         title="Creator dashboard"
         subtitle="Your performance, earnings and payouts on KC Earn."
       />
 
-      <section className="gradient-brand rounded-3xl p-5 text-brand-foreground">
+      <section className="gradient-brand rounded-3xl p-5 text-brand-foreground shadow-lift sm:p-6">
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]">
           <WalletIcon className="size-4" /> Wallet balance
         </p>
-        <p className="mt-2 text-3xl font-bold">
+        <p className="mt-2 text-4xl font-bold tracking-tight">
           {formatMoney(wallet?.available_balance ?? 0, currency)}
         </p>
         <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
           <div className="rounded-2xl bg-black/15 p-3">
-            <p className="text-xs opacity-80">Pending payouts</p>
+            <p className="text-xs opacity-80">Pending balance</p>
             <p className="font-bold">{formatMoney(wallet?.pending_balance ?? 0, currency)}</p>
           </div>
           <div className="rounded-2xl bg-black/15 p-3">
-            <p className="text-xs opacity-80">Lifetime earned</p>
+            <p className="text-xs opacity-80">Real earnings to date</p>
             <p className="font-bold">{formatMoney(wallet?.lifetime_earned ?? 0, currency)}</p>
           </div>
         </div>
@@ -179,7 +179,7 @@ function DashboardContent({ userId }: { userId: string }) {
             [TrendingUp, "Entries", String(earnings.length)],
           ] as const
         ).map(([Icon, label, value]) => (
-          <div key={label} className="rounded-2xl border border-border bg-card p-3 text-center">
+            <div key={label} className="rounded-2xl border border-border/80 bg-card p-3 text-center shadow-lift">
             <Icon className="mx-auto size-4 text-brand" />
             <p className="mt-1 text-lg font-bold">{value}</p>
             <p className="text-xs text-muted-foreground">{label}</p>
@@ -188,7 +188,7 @@ function DashboardContent({ userId }: { userId: string }) {
       </section>
 
       <section className="mt-6">
-        <h2 className="text-sm font-semibold">Earnings activity</h2>
+        <h2 className="text-sm font-semibold">Real earnings activity</h2>
         {earnings.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">
             No earnings recorded yet. Keep uploading — earnings appear here as your videos perform.
@@ -220,7 +220,7 @@ function DashboardContent({ userId }: { userId: string }) {
           <ArrowDownToLine className="size-4 text-brand" /> Request a withdrawal
         </h2>
         {!fullyVerified ? (
-          <div className="mt-3 rounded-2xl border border-brand/30 bg-brand/10 p-4 text-sm">
+          <div className="mt-3 rounded-2xl border border-brand/30 bg-brand/10 p-4 text-sm shadow-lift">
             <p className="font-semibold">Verify your account before withdrawing</p>
             <p className="mt-1 text-muted-foreground">
               Both your phone number and email address must be verified.
@@ -234,8 +234,8 @@ function DashboardContent({ userId }: { userId: string }) {
           onSubmit={submit}
           className={`mt-3 space-y-3 ${fullyVerified ? "" : "pointer-events-none opacity-50"}`}
         >
-          <div className="rounded-2xl border border-border bg-surface p-3 text-sm">
-            <p className="font-semibold">Nigeria payout rules</p>
+          <div className="rounded-2xl border border-border/80 bg-surface p-4 text-sm">
+            <p className="font-semibold">Withdrawable balance & payout rules</p>
             <p className="mt-1 text-muted-foreground">
               Minimum {formatMoney(rewardConfig?.minimum_withdrawal ?? 20000, currency)} eligible
               earnings.

@@ -188,7 +188,7 @@ function Upload() {
 
   if (!loading && !user) {
     return (
-      <div className="px-5 pb-4">
+      <div className="px-5 pb-4 sm:px-8">
         <ScreenHeader title="Upload" subtitle="Share a story with the community" />
         <div className="rounded-3xl border border-border bg-surface p-8 text-center">
           <span className="gradient-brand mx-auto grid size-14 place-items-center rounded-2xl text-brand-foreground">
@@ -212,10 +212,10 @@ function Upload() {
   const busy = uploadStage !== "idle" && uploadStage !== "done";
 
   return (
-    <div className="px-5 pb-4">
+    <div className="px-5 pb-4 sm:px-8">
       <ScreenHeader title="Upload" subtitle="Share a story with the community" />
 
-      <label className="flex cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl border border-dashed border-border bg-surface px-6 py-8 text-center">
+      <label className="flex cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl border border-dashed border-brand/40 bg-gradient-to-b from-surface to-background px-6 py-10 text-center shadow-lift transition-colors hover:border-brand">
         {preview?.url ? (
           <img
             src={preview.url}
@@ -302,7 +302,7 @@ function Upload() {
           type="button"
           disabled={!file || title.trim() === "" || busy}
           onClick={publish}
-          className="gradient-brand flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-brand-foreground shadow-lift disabled:opacity-40"
+          className="gradient-brand flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-bold text-brand-foreground shadow-lift transition-transform active:scale-[0.99] disabled:opacity-40"
         >
           <Film className="size-5" /> {progressText ?? "Publish video"}
         </button>

@@ -32,7 +32,8 @@ function AuthScreen() {
   const navigate = useNavigate();
   const router = useRouter();
   const { next } = Route.useSearch();
-  const returnTo = next ? `${window.location.origin}${next}` : window.location.origin;
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  const returnTo = next ? `${origin}${next}` : origin;
 
   function goAfterAuth() {
     if (next) {
@@ -124,20 +125,20 @@ function AuthScreen() {
     "w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-brand";
 
   return (
-    <div className="px-5 pb-4">
+    <div className="px-5 pb-4 sm:px-8">
       <ScreenHeader
         title={mode === "signin" ? "Sign in" : "Create account"}
         subtitle="Your creator account for KC Earn uploads"
       />
 
-      <div className="mb-5 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-surface p-1">
+      <div className="mb-5 grid grid-cols-2 gap-2 rounded-2xl border border-border/80 bg-surface p-1 shadow-lift">
         {(["signin", "signup"] as const).map((m) => (
           <button
             key={m}
             type="button"
             onClick={() => setMode(m)}
             className={`rounded-xl py-2 text-sm font-semibold transition-colors ${
-              mode === m ? "bg-brand text-brand-foreground" : "text-muted-foreground"
+              mode === m ? "bg-brand text-brand-foreground shadow-lift" : "text-muted-foreground"
             }`}
           >
             {m === "signin" ? "Sign in" : "Sign up"}

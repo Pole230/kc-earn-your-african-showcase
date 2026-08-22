@@ -3,7 +3,7 @@ import { timeAgo, type ExternalFeedVideo } from "@/lib/videos";
 
 export function ExternalVideoCard({ video }: { video: ExternalFeedVideo }) {
   return (
-    <article className="overflow-hidden rounded-3xl border border-border bg-card shadow-lift">
+    <article className="overflow-hidden rounded-3xl border border-border/80 bg-card shadow-lift">
       <div className="relative aspect-video w-full overflow-hidden bg-secondary">
         <iframe
           src={video.embedUrl}
@@ -14,7 +14,7 @@ export function ExternalVideoCard({ video }: { video: ExternalFeedVideo }) {
           allowFullScreen
         />
       </div>
-      <div className="px-4 pt-3">
+      <div className="px-5 pt-4">
         <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-brand">
           <Globe2 className="size-4" /> {video.source_platform} · external
         </div>
