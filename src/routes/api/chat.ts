@@ -127,9 +127,11 @@ export const Route = createFileRoute("/api/chat")({
               .maybeSingle();
             const phoneVerified = Boolean(verification?.phone_verified_at);
             const emailVerified = Boolean(verification?.email_verified_at);
-            const { data: wallet, error: walletError } = await auth.supabase
+            const { data: wallet, error: walletError } = await (auth.supabase as any)
               .from("wallets")
-              .select("available_balance,pending_balance,lifetime_earned,currency")
+              .select(
+                "available_balance,pending_balance,promotional_bonus_balance,referral_bonus_locked,referral_bonus_unlocked,real_earnings_balance,lifetime_earned,currency",
+              )
               .eq("user_id", auth.userId)
               .maybeSingle();
 
@@ -151,6 +153,10 @@ export const Route = createFileRoute("/api/chat")({
             const currency = wallet?.currency ?? "USD";
             const available = Number(wallet?.available_balance ?? 0);
             const pending = Number(wallet?.pending_balance ?? 0);
+            const promotional = Number(wallet?.promotional_bonus_balance ?? 0);
+            const referralLocked = Number(wallet?.referral_bonus_locked ?? 0);
+            const referralUnlocked = Number(wallet?.referral_bonus_unlocked ?? 0);
+            const realEarnings = Number(wallet?.real_earnings_balance ?? available);
             const lifetime = Number(wallet?.lifetime_earned ?? 0);
 
             const recentEarnings = (earnings ?? []).map((row) => ({
@@ -169,7 +175,11 @@ AUTHENTICATED CREATOR EARNINGS CONTEXT:
 - Email verified: ${Boolean(verification?.email_verified_at)}
 - Currency: ${currency}
 - Available wallet balance: ${available.toFixed(2)}
+- Withdrawable real earnings: ${realEarnings.toFixed(2)}
 - Pending balance: ${pending.toFixed(2)}
+- Promotional bonus (not withdrawable): ${promotional.toFixed(2)}
+- Referral bonus locked: ${referralLocked.toFixed(2)}
+- Referral bonus unlocked: ${referralUnlocked.toFixed(2)}
 - Lifetime earned: ${lifetime.toFixed(2)}
 - Recent earnings: ${JSON.stringify(recentEarnings)}
 

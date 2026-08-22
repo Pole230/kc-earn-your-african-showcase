@@ -169,6 +169,10 @@ function DashboardContent({ userId }: { userId: string }) {
             <p className="font-bold">{formatMoney(wallet?.lifetime_earned ?? 0, currency)}</p>
           </div>
         </div>
+        <p className="mt-3 text-xs opacity-80">
+          Withdrawable balance excludes promotional credit. Promotional credit:{" "}
+          {formatMoney(wallet?.promotional_bonus_balance ?? 0, currency)}.
+        </p>
       </section>
 
       <section className="mt-4 grid grid-cols-3 gap-3">
@@ -179,7 +183,10 @@ function DashboardContent({ userId }: { userId: string }) {
             [TrendingUp, "Entries", String(earnings.length)],
           ] as const
         ).map(([Icon, label, value]) => (
-            <div key={label} className="rounded-2xl border border-border/80 bg-card p-3 text-center shadow-lift">
+          <div
+            key={label}
+            className="rounded-2xl border border-border/80 bg-card p-3 text-center shadow-lift"
+          >
             <Icon className="mx-auto size-4 text-brand" />
             <p className="mt-1 text-lg font-bold">{value}</p>
             <p className="text-xs text-muted-foreground">{label}</p>

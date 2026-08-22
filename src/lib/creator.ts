@@ -4,6 +4,10 @@ export type Wallet = {
   user_id: string;
   available_balance: number;
   pending_balance: number;
+  promotional_bonus_balance: number;
+  referral_bonus_locked: number;
+  referral_bonus_unlocked: number;
+  real_earnings_balance: number;
   lifetime_earned: number;
   currency: string;
 };
@@ -46,9 +50,23 @@ function num(value: number | string | null): number {
 }
 
 export async function fetchWallet(userId: string): Promise<Wallet> {
-  const { data, error } = await supabase
+  const client = supabase as unknown as {
+    from: (table: string) => {
+      select: (columns: string) => {
+        eq: (
+          column: string,
+          value: string,
+        ) => {
+          maybeSingle: () => Promise<{ data: Partial<Wallet> | null; error: Error | null }>;
+        };
+      };
+    };
+  };
+  const { data, error } = await client
     .from("wallets")
-    .select("user_id,available_balance,pending_balance,lifetime_earned,currency")
+    .select(
+      "user_id,available_balance,pending_balance,promotional_bonus_balance,referral_bonus_locked,referral_bonus_unlocked,real_earnings_balance,lifetime_earned,currency",
+    )
     .eq("user_id", userId)
     .maybeSingle();
   if (error) throw error;
@@ -56,6 +74,10 @@ export async function fetchWallet(userId: string): Promise<Wallet> {
     user_id: userId,
     available_balance: num(data?.available_balance ?? 0),
     pending_balance: num(data?.pending_balance ?? 0),
+    promotional_bonus_balance: num(data?.promotional_bonus_balance ?? 0),
+    referral_bonus_locked: num(data?.referral_bonus_locked ?? 0),
+    referral_bonus_unlocked: num(data?.referral_bonus_unlocked ?? 0),
+    real_earnings_balance: num(data?.real_earnings_balance ?? data?.available_balance ?? 0),
     lifetime_earned: num(data?.lifetime_earned ?? 0),
     currency: data?.currency ?? "USD",
   };
