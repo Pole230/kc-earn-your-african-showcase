@@ -17,9 +17,11 @@ import { Route as McpRouteImport } from './routes/mcp'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as UploadRouteImport } from './routes/upload'
+import { Route as VerificationRouteImport } from './routes/verification'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as ApiChatRouteImport } from './routes/api/chat'
+import { Route as ApiVerificationRouteImport } from './routes/api/verification'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as ApiAiAnalyticsRouteImport } from './routes/api/ai/analytics'
@@ -68,6 +70,11 @@ const UploadRoute = UploadRouteImport.update({
   path: '/upload',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VerificationRoute = VerificationRouteImport.update({
+  id: '/verification',
+  path: '/verification',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91DotmcpChar93ListToolsRoute =
   Char91DotmcpChar93ListToolsRouteImport.update({
     id: '/.mcp/list-tools',
@@ -83,6 +90,11 @@ const Char91DotwellKnownChar93OauthProtectedResourceRoute =
 const ApiChatRoute = ApiChatRouteImport.update({
   id: '/api/chat',
   path: '/api/chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiVerificationRoute = ApiVerificationRouteImport.update({
+  id: '/api/verification',
+  path: '/api/verification',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
@@ -131,9 +143,11 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/upload': typeof UploadRoute
+  '/verification': typeof VerificationRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/verification': typeof ApiVerificationRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/ai/analytics': typeof ApiAiAnalyticsRoute
@@ -151,9 +165,11 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/upload': typeof UploadRoute
+  '/verification': typeof VerificationRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/verification': typeof ApiVerificationRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/ai/analytics': typeof ApiAiAnalyticsRoute
@@ -172,9 +188,11 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/profile': typeof ProfileRoute
   '/upload': typeof UploadRoute
+  '/verification': typeof VerificationRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/api/chat': typeof ApiChatRoute
+  '/api/verification': typeof ApiVerificationRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/api/ai/analytics': typeof ApiAiAnalyticsRoute
@@ -194,9 +212,11 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/upload'
+    | '/verification'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/api/chat'
+    | '/api/verification'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/ai/analytics'
@@ -214,9 +234,11 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/upload'
+    | '/verification'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/api/chat'
+    | '/api/verification'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/ai/analytics'
@@ -234,9 +256,11 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/profile'
     | '/upload'
+    | '/verification'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/api/chat'
+    | '/api/verification'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/api/ai/analytics'
@@ -255,9 +279,11 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   ProfileRoute: typeof ProfileRoute
   UploadRoute: typeof UploadRoute
+  VerificationRoute: typeof VerificationRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiChatRoute: typeof ApiChatRoute
+  ApiVerificationRoute: typeof ApiVerificationRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiAiAnalyticsRoute: typeof ApiAiAnalyticsRoute
@@ -325,6 +351,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UploadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/verification': {
+      id: '/verification'
+      path: '/verification'
+      fullPath: '/verification'
+      preLoaderRoute: typeof VerificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.mcp/list-tools': {
       id: '/.mcp/list-tools'
       path: '/.mcp/list-tools'
@@ -344,6 +377,13 @@ declare module '@tanstack/react-router' {
       path: '/api/chat'
       fullPath: '/api/chat'
       preLoaderRoute: typeof ApiChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/verification': {
+      id: '/api/verification'
+      path: '/api/verification'
+      fullPath: '/api/verification'
+      preLoaderRoute: typeof ApiVerificationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.lovable/oauth/consent': {
@@ -407,10 +447,12 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   ProfileRoute: ProfileRoute,
   UploadRoute: UploadRoute,
+  VerificationRoute: VerificationRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiChatRoute: ApiChatRoute,
+  ApiVerificationRoute: ApiVerificationRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiAiAnalyticsRoute: ApiAiAnalyticsRoute,

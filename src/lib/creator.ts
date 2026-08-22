@@ -26,6 +26,19 @@ export type Withdrawal = {
   created_at: string;
 };
 
+export type VerificationStatus = {
+  phone_verified_at: string | null;
+  email_verified_at: string | null;
+};
+
+export type RewardConfig = {
+  signup_bonus: number;
+  referral_target: number;
+  referral_reward: number;
+  minimum_withdrawal: number;
+  withdrawal_fee: number;
+};
+
 export const PAYOUT_METHODS = ["Mobile Money", "Bank Transfer", "PayPal"] as const;
 
 function num(value: number | string | null): number {
@@ -95,6 +108,37 @@ export async function requestWithdrawal(input: {
     _destination: input.destination,
   });
   if (error) throw error;
+  return data;
+}
+
+export async function fetchVerificationStatus(): Promise<VerificationStatus> {
+  const { data } = await supabase.auth.getSession();
+  const response = await fetch("/api/verification", {
+    headers: { Authorization: `Bearer ${data.session?.access_token ?? ""}` },
+  });
+  if (!response.ok) throw new Error("Could not load verification status");
+  return response.json();
+}
+
+export async function fetchRewardConfig(): Promise<RewardConfig> {
+  const client = supabase as unknown as {
+    from: (table: string) => {
+      select: (columns: string) => {
+        eq: (
+          column: string,
+          value: boolean,
+        ) => {
+          maybeSingle: () => Promise<{ data: RewardConfig | null; error: Error | null }>;
+        };
+      };
+    };
+  };
+  const { data, error } = await client
+    .from("platform_reward_config")
+    .select("signup_bonus,referral_target,referral_reward,minimum_withdrawal,withdrawal_fee")
+    .eq("id", true)
+    .maybeSingle();
+  if (error || !data) throw error ?? new Error("Could not load reward configuration");
   return data;
 }
 

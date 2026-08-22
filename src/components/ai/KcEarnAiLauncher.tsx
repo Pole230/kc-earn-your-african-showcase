@@ -4,12 +4,22 @@ import { MessageCircleMore } from "lucide-react";
 
 import { KcEarnAiPanel } from "./KcEarnAiPanel";
 import aiLogo from "@/assets/kc-earn-ai.png";
+import { useAuth } from "@/hooks/useAuth";
 
 export function KcEarnAiLauncher() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { session } = useAuth();
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!session || typeof window === "undefined") return;
+    const key = `kc-earn-ai-welcome:${session.access_token}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    setOpen(true);
+  }, [session]);
 
   useEffect(() => {
     if (!open) return;

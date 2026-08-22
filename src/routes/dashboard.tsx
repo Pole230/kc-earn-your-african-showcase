@@ -13,6 +13,8 @@ import {
   fetchWithdrawals,
   formatMoney,
   requestWithdrawal,
+  fetchVerificationStatus,
+  fetchRewardConfig,
 } from "@/lib/creator";
 
 export const Route = createFileRoute("/dashboard")({
@@ -97,6 +99,17 @@ function DashboardContent({ userId }: { userId: string }) {
     queryKey: ["my-videos", userId],
     queryFn: () => fetchMyVideos(userId),
   });
+  const { data: verification } = useQuery({
+    queryKey: ["verification-status", userId],
+    queryFn: fetchVerificationStatus,
+  });
+  const { data: rewardConfig } = useQuery({
+    queryKey: ["reward-config"],
+    queryFn: fetchRewardConfig,
+  });
+  const fullyVerified = Boolean(verification?.phone_verified_at && verification?.email_verified_at);
+  const requestedAmount = Number(amount) || 0;
+  const platformFee = Math.min(rewardConfig?.withdrawal_fee ?? 0, requestedAmount);
 
   const currency = wallet?.currency ?? "USD";
   const totalViews = videos.reduce((sum, video) => sum + (video.views_count ?? 0), 0);
@@ -206,7 +219,37 @@ function DashboardContent({ userId }: { userId: string }) {
         <h2 className="flex items-center gap-2 text-sm font-semibold">
           <ArrowDownToLine className="size-4 text-brand" /> Request a withdrawal
         </h2>
-        <form onSubmit={submit} className="mt-3 space-y-3">
+        {!fullyVerified ? (
+          <div className="mt-3 rounded-2xl border border-brand/30 bg-brand/10 p-4 text-sm">
+            <p className="font-semibold">Verify your account before withdrawing</p>
+            <p className="mt-1 text-muted-foreground">
+              Both your phone number and email address must be verified.
+            </p>
+            <Link to="/verification" className="mt-3 inline-block font-bold text-brand">
+              Open verification
+            </Link>
+          </div>
+        ) : null}
+        <form
+          onSubmit={submit}
+          className={`mt-3 space-y-3 ${fullyVerified ? "" : "pointer-events-none opacity-50"}`}
+        >
+          <div className="rounded-2xl border border-border bg-surface p-3 text-sm">
+            <p className="font-semibold">Nigeria payout rules</p>
+            <p className="mt-1 text-muted-foreground">
+              Minimum {formatMoney(rewardConfig?.minimum_withdrawal ?? 20000, currency)} eligible
+              earnings.
+            </p>
+            {requestedAmount > 0 ? (
+              <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                <p>Requested amount: {formatMoney(requestedAmount, currency)}</p>
+                <p>Platform fee: {formatMoney(platformFee, currency)}</p>
+                <p className="font-semibold text-foreground">
+                  Payout amount: {formatMoney(requestedAmount - platformFee, currency)}
+                </p>
+              </div>
+            ) : null}
+          </div>
           <label className="block">
             <span className="text-xs text-muted-foreground">Amount ({currency})</span>
             <input

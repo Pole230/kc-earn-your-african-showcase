@@ -120,6 +120,13 @@ export const Route = createFileRoute("/api/chat")({
           // Read-only queries only; withdrawal operations are never exposed to the AI.
           let creatorContext = "";
           try {
+            const { data: verification } = await (auth.supabase as any)
+              .from("account_verifications")
+              .select("phone_verified_at,email_verified_at")
+              .eq("user_id", auth.userId)
+              .maybeSingle();
+            const phoneVerified = Boolean(verification?.phone_verified_at);
+            const emailVerified = Boolean(verification?.email_verified_at);
             const { data: wallet, error: walletError } = await auth.supabase
               .from("wallets")
               .select("available_balance,pending_balance,lifetime_earned,currency")
@@ -155,6 +162,11 @@ export const Route = createFileRoute("/api/chat")({
 
             creatorContext = `
 AUTHENTICATED CREATOR EARNINGS CONTEXT:
+- Verification state: ${phoneVerified && emailVerified ? "FULLY_VERIFIED" : phoneVerified ? "EMAIL_UNVERIFIED" : emailVerified ? "PHONE_UNVERIFIED" : "PARTIALLY_VERIFIED"}
+- Phone verified: ${phoneVerified}
+- Email verified: ${emailVerified}
+- Phone verified: ${Boolean(verification?.phone_verified_at)}
+- Email verified: ${Boolean(verification?.email_verified_at)}
 - Currency: ${currency}
 - Available wallet balance: ${available.toFixed(2)}
 - Pending balance: ${pending.toFixed(2)}
@@ -165,6 +177,7 @@ Use these values when the creator asks about their own balance, earnings, or rec
 These values belong only to the authenticated creator. Never reveal another user's financial information.
 Never invent or estimate financial values that are not present in this context.
 Do not initiate, approve, or claim to have processed withdrawals.
+You may explain which verification step remains and direct the creator to /verification, but you must never mark either method verified, bypass checks, or override OTP validation.
 `;
           } catch (err) {
             console.error("[kc-earn-ai] failed to load creator earnings context", err);

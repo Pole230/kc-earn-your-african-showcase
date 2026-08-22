@@ -32,7 +32,28 @@ const SUGGESTIONS = [
   "How do I grow my audience across Africa?",
 ];
 
-function WelcomeScreen({ onPick }: { onPick: (text: string) => void }) {
+function speakWelcome(text: string) {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.volume = 1;
+  window.speechSynthesis.speak(utterance);
+}
+
+function WelcomeScreen({
+  onPick,
+  displayName,
+}: {
+  onPick: (text: string) => void;
+  displayName: string;
+}) {
+  const welcome = `Welcome to KC Earn, ${displayName}. KC Earn helps you create, share, and earn from your videos. KC Telecom and KC Messaging are part of the ecosystem; other KC products are coming soon.`;
+
+  useEffect(() => {
+    speakWelcome(welcome);
+    return () => window.speechSynthesis?.cancel();
+  }, [displayName]);
+
   return (
     <div className="flex flex-col items-center px-2 py-8 text-center">
       <img
@@ -47,15 +68,16 @@ function WelcomeScreen({ onPick }: { onPick: (text: string) => void }) {
       <p className="mt-2 text-sm font-semibold tracking-wide text-brand">
         Create. Share. Earn. Powered by AI.
       </p>
-      <p className="mt-3 max-w-sm text-sm text-muted-foreground">
-        Ideas, captions, hashtags, trends and growth strategy built for African creators.
-      </p>
+      <p className="mt-3 max-w-sm text-sm text-muted-foreground">{welcome}</p>
       <div className="mt-6 grid w-full gap-2">
         {SUGGESTIONS.map((suggestion) => (
           <button
             key={suggestion}
             type="button"
-            onClick={() => onPick(suggestion)}
+            onClick={() => {
+              speakWelcome(welcome);
+              onPick(suggestion);
+            }}
             className="rounded-2xl border border-border bg-surface px-4 py-3 text-left text-sm text-foreground transition-colors hover:border-brand/60 hover:bg-surface-strong"
           >
             {suggestion}
@@ -72,12 +94,14 @@ function ChatPanel({
   onClose,
   prefs,
   refetchPrefs,
+  displayName,
 }: {
   userId: string;
   initialMessages: UIMessage[];
   onClose: () => void;
   prefs: Record<string, any>;
   refetchPrefs: () => void;
+  displayName: string;
 }) {
   const queryClient = useQueryClient();
   const [input, setInput] = useState("");
@@ -98,8 +122,8 @@ function ChatPanel({
       const message = err.message?.includes("429")
         ? "KC Earn AI is busy right now — try again in a moment."
         : err.message?.includes("402")
-        ? "AI credits are exhausted. Please top up to keep chatting."
-        : "KC Earn AI couldn't respond. Please try again.";
+          ? "AI credits are exhausted. Please top up to keep chatting."
+          : "KC Earn AI couldn't respond. Please try again.";
       toast.error(message);
     },
   });
@@ -225,16 +249,50 @@ function ChatPanel({
           </div>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" onClick={() => callTool("/api/ai/tools/title", { topic: "Lagos street food", category: "Food" })} disabled={!!toolLoading}>
+          <Button
+            size="sm"
+            onClick={() =>
+              callTool("/api/ai/tools/title", { topic: "Lagos street food", category: "Food" })
+            }
+            disabled={!!toolLoading}
+          >
             {toolLoading === "/api/ai/tools/title" ? "Generating…" : "Generate Title"}
           </Button>
-          <Button size="sm" onClick={() => callTool("/api/ai/tools/caption", { description: "Vendor making suya with spices", mood: "excited" })} disabled={!!toolLoading}>
+          <Button
+            size="sm"
+            onClick={() =>
+              callTool("/api/ai/tools/caption", {
+                description: "Vendor making suya with spices",
+                mood: "excited",
+              })
+            }
+            disabled={!!toolLoading}
+          >
             {toolLoading === "/api/ai/tools/caption" ? "Generating…" : "Create Caption"}
           </Button>
-          <Button size="sm" onClick={() => callTool("/api/ai/tools/hashtags", { topic: "suya street food", category: "Food", region: "Nigeria" })} disabled={!!toolLoading}>
+          <Button
+            size="sm"
+            onClick={() =>
+              callTool("/api/ai/tools/hashtags", {
+                topic: "suya street food",
+                category: "Food",
+                region: "Nigeria",
+              })
+            }
+            disabled={!!toolLoading}
+          >
             {toolLoading === "/api/ai/tools/hashtags" ? "Generating…" : "Generate Hashtags"}
           </Button>
-          <Button size="sm" onClick={() => callTool("/api/ai/tools/coach", { focus: "grow audience in West Africa", platform: "short-form video" })} disabled={!!toolLoading}>
+          <Button
+            size="sm"
+            onClick={() =>
+              callTool("/api/ai/tools/coach", {
+                focus: "grow audience in West Africa",
+                platform: "short-form video",
+              })
+            }
+            disabled={!!toolLoading}
+          >
             {toolLoading === "/api/ai/tools/coach" ? "Generating…" : "Creator Coach"}
           </Button>
         </div>
@@ -348,7 +406,7 @@ function ChatPanel({
       <Conversation className="flex-1">
         <ConversationContent className="gap-4 px-4 py-4">
           {messages.length === 0 ? (
-            <WelcomeScreen onPick={submit} />
+            <WelcomeScreen onPick={submit} displayName={displayName} />
           ) : (
             messages.map((message) => {
               const text = message.parts
@@ -470,6 +528,9 @@ export function KcEarnAiPanel({ onClose }: { onClose: () => void }) {
       onClose={onClose}
       prefs={prefs ?? {}}
       refetchPrefs={() => refetchPrefs()}
+      displayName={String(
+        user.user_metadata?.display_name ?? user.user_metadata?.full_name ?? "creator",
+      )}
     />
   );
 }
