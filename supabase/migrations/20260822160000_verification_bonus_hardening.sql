@@ -75,9 +75,10 @@ BEGIN
   IF email_value IS NULL OR public.is_disposable_email(email_value) THEN
     RAISE EXCEPTION 'Disposable email addresses are not accepted';
   END IF;
-  IF phone_value IS NULL THEN RAISE EXCEPTION 'Phone number is required'; END IF;
-  phone_value := public.normalize_registration_phone(phone_value);
-  IF public.is_blocked_phone(phone_value) THEN RAISE EXCEPTION 'This phone number type is not accepted'; END IF;
+  IF phone_value IS NOT NULL THEN
+    phone_value := public.normalize_registration_phone(phone_value);
+    IF public.is_blocked_phone(phone_value) THEN RAISE EXCEPTION 'This phone number type is not accepted'; END IF;
+  END IF;
   INSERT INTO public.profiles (id, display_name, email_normalized, registration_phone, created_at)
   VALUES (NEW.id, COALESCE(NEW.raw_user_meta_data ->> 'display_name', split_part(email_value, '@', 1)),
     email_value, phone_value, now())
