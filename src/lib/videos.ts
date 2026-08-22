@@ -9,7 +9,7 @@ export type FeedVideo = {
   duration_seconds: number | null;
   views_count: number;
   created_at: string;
-  status: "processing" | "published" | "removed";
+  status: "processing" | "published" | "failed" | "removed";
   user_id: string;
   videoUrl: string | null;
   thumbnailUrl: string | null;
@@ -38,7 +38,7 @@ type Row = {
   duration_seconds: number | null;
   views_count: number;
   created_at: string;
-  status: "processing" | "published" | "removed";
+  status: "processing" | "published" | "failed" | "removed";
   user_id: string;
   video_path: string;
   thumbnail_path: string | null;
@@ -148,11 +148,12 @@ export async function fetchFeed(category?: string) {
     .eq("external_status", "active")
     .not("embed_url", "is", null)
     .order("published_at", { ascending: false })
-    .limit(3);
-  const { data: externalData } =
+    .limit(20);
+  const { data: externalData, error: externalError } =
     category && category !== "All"
       ? await externalQuery.eq("category", category as Category)
       : await externalQuery;
+  if (externalError) throw externalError;
   const external = (externalData ?? []).flatMap((video) =>
     video.embed_url
       ? [

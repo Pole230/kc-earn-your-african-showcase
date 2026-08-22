@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MapPin, Settings, Grid3x3, Bookmark, Trash2, Wallet } from "lucide-react";
 import { toast } from "sonner";
-import { PROFILE, VIDEOS } from "@/data/content";
+import { PROFILE } from "@/data/content";
 import { useAuth } from "@/hooks/useAuth";
 import { fetchMyVideos, formatDuration } from "@/lib/videos";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,7 +25,6 @@ export const Route = createFileRoute("/profile")({
 
 function Profile() {
   const [tab, setTab] = useState<"videos" | "saved">("videos");
-  const posts = tab === "videos" ? VIDEOS : VIDEOS.slice(2, 5);
   const { user, signOut } = useAuth();
   const queryClient = useQueryClient();
   const { data: myVideos = [] } = useQuery({
@@ -145,7 +144,7 @@ function Profile() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{video.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        {video.category} · {formatDuration(video.duration_seconds)}
+                        {video.category} · {formatDuration(video.duration_seconds)} · {video.status}
                       </p>
                     </div>
                     <button
@@ -186,22 +185,9 @@ function Profile() {
           ))}
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {posts.map((post) => (
-            <div key={post.id} className="relative aspect-[3/4] overflow-hidden rounded-xl">
-              <img
-                src={post.thumbnail}
-                alt={post.title}
-                width={576}
-                height={768}
-                loading="lazy"
-                className="size-full object-cover"
-              />
-              <div className="veil absolute inset-0" />
-              <span className="absolute bottom-1.5 left-2 text-[11px] font-semibold">{post.views}</span>
-            </div>
-          ))}
-        </div>
+        {tab === "saved" ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">Saved videos will appear here.</p>
+        ) : null}
       </div>
     </div>
   );

@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
 function Home() {
   const [category, setCategory] = useState("All");
   // Use only real uploaded videos from Supabase. Remove mock/demo data.
-  const { data: uploaded = [], isLoading } = useQuery({
+  const { data: uploaded = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["feed", category],
     queryFn: () => fetchFeed(category),
   });
@@ -75,6 +75,17 @@ function Home() {
         {/* Render only uploaded videos fetched from Supabase */}
         {isLoading ? (
           <div className="h-64 animate-pulse rounded-3xl border border-border bg-surface" />
+        ) : isError ? (
+          <div className="rounded-3xl border border-border bg-surface p-8 text-center">
+            <p className="text-sm font-semibold">The feed could not be loaded.</p>
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              className="mt-4 rounded-xl border border-border px-4 py-2 text-sm font-semibold"
+            >
+              Try again
+            </button>
+          </div>
         ) : (
           uploaded.map((video) =>
             "source" in video && video.source === "external" ? (
@@ -88,7 +99,7 @@ function Home() {
           )
         )}
 
-        {!isLoading && uploaded.length === 0 ? (
+        {!isLoading && !isError && uploaded.length === 0 ? (
           <p className="py-16 text-center text-sm text-muted-foreground">
             Nothing here yet in {category}.
           </p>

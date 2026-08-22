@@ -142,9 +142,9 @@ export async function processVideoWithClient(supabaseClient: SupabaseClient, vid
     if (updateErr) throw updateErr as Error;
   } catch (err) {
     console.error("processing failed for video", videoId, err);
-    // Mark video as removed to avoid repeated failing attempts; in a real system you'd mark an error state
+    // Keep the failed upload visible to its owner for retry or deletion.
     try {
-      await supabaseClient.from("videos").update({ status: "removed" }).eq("id", videoId);
+      await supabaseClient.from("videos").update({ status: "failed" }).eq("id", videoId);
     } catch (uErr) {
       console.error("failed to mark video as removed", uErr);
     }

@@ -88,13 +88,16 @@ export class FacebookProvider extends NoCredentialProvider {
 export class InstagramProvider extends NoCredentialProvider {
   readonly platform = "instagram" as const;
 }
+export class OtherAuthorizedSourceProvider extends NoCredentialProvider {
+  readonly platform = "other_authorized_source" as const;
+}
 
 export const PROVIDERS: Record<ExternalPlatform, ExternalVideoProvider> = {
   youtube: new YouTubeProvider(),
   tiktok: new TikTokProvider(),
   facebook: new FacebookProvider(),
   instagram: new InstagramProvider(),
-  other_authorized_source: new InstagramProvider(),
+  other_authorized_source: new OtherAuthorizedSourceProvider(),
 };
 
 export function providerFor(platform: ExternalPlatform) {

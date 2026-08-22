@@ -911,7 +911,7 @@ export type Database = {
         | "Sports"
         | "Learning"
         | "Serious Topics"
-      video_status: "processing" | "published" | "removed"
+      video_status: "processing" | "published" | "failed" | "removed"
       withdrawal_status: "pending" | "processing" | "paid" | "rejected"
     }
     CompositeTypes: {
@@ -1079,7 +1079,7 @@ export const Constants = {
         "Learning",
         "Serious Topics",
       ],
-      video_status: ["processing", "published", "removed"],
+      video_status: ["processing", "published", "failed", "removed"],
       withdrawal_status: ["pending", "processing", "paid", "rejected"],
     },
   },

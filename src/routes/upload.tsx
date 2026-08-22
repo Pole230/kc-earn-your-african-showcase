@@ -9,8 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { probeVideoFile } from "@/lib/video-probe";
 import type { Category } from "@/data/content";
-import type { Video } from "@/types/video";
 import type { Database } from "@/integrations/supabase/types";
+import { processUploadedVideo } from "@/lib/video-processing.functions";
 
 export const Route = createFileRoute("/upload")({
   head: () => ({
@@ -48,7 +48,7 @@ function Upload() {
     "idle" | "uploading" | "uploading-thumb" | "publishing" | "done" | "error"
   >("idle");
 
-  // Fake progress updater to give user feedback while upload is in flight.
+  // Storage uploads do not expose progress through this client API.
   // It will increase up to 90% and wait for the real upload to finish.
   useEffect(() => {
     let timer: number | undefined;
@@ -159,6 +159,10 @@ function Upload() {
         .single();
 
       if (insertError) throw insertError;
+      if (!inserted?.id) throw new Error("Upload record was not created");
+
+      setProgressText("Processing video…");
+      await processUploadedVideo({ data: { videoId: inserted.id } });
 
       // Refresh feed queries
       await queryClient.invalidateQueries({ queryKey: ["feed"] });
@@ -167,7 +171,7 @@ function Upload() {
       setUploadStage("done");
       setProgressText(null);
 
-      toast.success("Upload saved", { description: "Your video is being processed and will appear shortly." });
+      toast.success("Video published", { description: "Your video is now available in the feed." });
 
       // reset form
       setFile(null);

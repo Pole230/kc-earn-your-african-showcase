@@ -12,7 +12,7 @@ export type Video = {
   duration_seconds?: number | null;
   views_count: number;
   likes_count: number;
-  status: 'processing' | 'published' | 'removed';
+  status: 'processing' | 'published' | 'failed' | 'removed';
   video_path: string; // storage object path in the videos bucket
   thumbnail_path?: string | null; // storage object path in the thumbnails bucket
   created_at: string;
