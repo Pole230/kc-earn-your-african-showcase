@@ -1,3 +1,5 @@
+import { createPaystackProvider } from "@/lib/paystack.server";
+
 export type WelcomePayoutProvider = {
   name: string;
   resolveBankAccount: (input: { bankCode: string; accountNumber: string }) => Promise<{
@@ -11,16 +13,20 @@ export type WelcomePayoutProvider = {
     reference: string;
   }) => Promise<{
     providerReference: string;
-    status: "PROCESSING" | "PAID";
+    status: "PROCESSING";
   }>;
 };
 
 export function getWelcomePayoutProvider(): WelcomePayoutProvider {
-  throw new Error(
-    process.env.WELCOME_PAYOUT_PROVIDER
-      ? `Provider ${process.env.WELCOME_PAYOUT_PROVIDER} is not implemented`
-      : "No approved welcome payout provider is configured",
-  );
+  if (process.env.WELCOME_PAYOUT_PROVIDER !== "paystack") {
+    throw new Error(
+      process.env.WELCOME_PAYOUT_PROVIDER
+        ? `Provider ${process.env.WELCOME_PAYOUT_PROVIDER} is not implemented`
+        : "No approved welcome payout provider is configured",
+    );
+  }
+
+  return createPaystackProvider();
 }
 
 export function isWelcomePayoutEligible(input: {

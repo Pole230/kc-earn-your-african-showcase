@@ -101,7 +101,7 @@ BEGIN
     RAISE EXCEPTION 'Phone and email verification are required';
   END IF;
   SELECT * INTO bank FROM public.bank_accounts WHERE id = p_bank_account_id AND creator_id = uid FOR UPDATE;
-  IF bank.id IS NULL OR bank.verified IS NOT TRUE OR bank.external_id IS NULL THEN RAISE EXCEPTION 'A provider-verified bank account is required'; END IF;
+  IF bank.id IS NULL OR bank.provider <> 'paystack' OR bank.verified IS NOT TRUE OR bank.external_id IS NULL THEN RAISE EXCEPTION 'A Paystack-verified bank account is required'; END IF;
   IF cfg.welcome_bonus_budget_remaining < cfg.welcome_bonus_amount THEN RAISE EXCEPTION 'Welcome bonus budget is unavailable'; END IF;
   payout_reference := 'KCEARN-WELCOME-' || upper(replace(gen_random_uuid()::text, '-', ''));
   INSERT INTO public.welcome_bonus_payouts (user_id, bank_account_id, reference, provider, recipient_reference, amount, currency, status, consented_at, queued_at)
@@ -120,21 +120,40 @@ REVOKE ALL ON FUNCTION public.queue_welcome_bonus_payout(uuid, boolean) FROM PUB
 GRANT EXECUTE ON FUNCTION public.queue_welcome_bonus_payout(uuid, boolean) TO authenticated;
 
 -- Provider workers/webhooks are the only actors allowed to advance payout state.
+CREATE OR REPLACE FUNCTION public.claim_welcome_bonus_payout(p_reference text)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF COALESCE(auth.role(), '') <> 'service_role' THEN RAISE EXCEPTION 'Forbidden'; END IF;
+  UPDATE public.welcome_bonus_payouts
+  SET status = 'PROCESSING', processing_at = COALESCE(processing_at, now()), updated_at = now()
+  WHERE reference = p_reference AND status = 'PAYOUT_QUEUED';
+  RETURN FOUND;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.mark_welcome_bonus_processing(p_reference text, p_provider_reference text)
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   IF COALESCE(auth.role(), '') <> 'service_role' THEN RAISE EXCEPTION 'Forbidden'; END IF;
-  UPDATE public.welcome_bonus_payouts SET status = 'PROCESSING', provider_reference = p_provider_reference, processing_at = COALESCE(processing_at, now()), updated_at = now()
-    WHERE reference = p_reference AND status = 'PAYOUT_QUEUED';
+  UPDATE public.welcome_bonus_payouts SET provider_reference = p_provider_reference, updated_at = now()
+    WHERE reference = p_reference AND status = 'PROCESSING' AND provider_reference IS NULL;
   RETURN FOUND;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION public.set_welcome_bonus_provider_reference(p_reference text, p_provider_reference text)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  RETURN public.mark_welcome_bonus_processing(p_reference, p_provider_reference);
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.confirm_welcome_bonus_paid(p_reference text, p_provider_reference text)
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   IF COALESCE(auth.role(), '') <> 'service_role' THEN RAISE EXCEPTION 'Forbidden'; END IF;
   UPDATE public.welcome_bonus_payouts SET status = 'PAID', provider_reference = COALESCE(p_provider_reference, provider_reference), paid_at = COALESCE(paid_at, now()), updated_at = now()
-    WHERE reference = p_reference AND status IN ('PAYOUT_QUEUED','PROCESSING');
+    WHERE reference = p_reference AND provider = 'paystack' AND status = 'PROCESSING';
   RETURN FOUND;
 END;
 $$;
@@ -159,7 +178,7 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.mark_welcome_bonus_processing(text, text), public.confirm_welcome_bonus_paid(text, text), public.fail_welcome_bonus_payout(text, text), public.retry_welcome_bonus_payout(text) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.mark_welcome_bonus_processing(text, text), public.confirm_welcome_bonus_paid(text, text), public.fail_welcome_bonus_payout(text, text), public.retry_welcome_bonus_payout(text) TO service_role;
+REVOKE ALL ON FUNCTION public.claim_welcome_bonus_payout(text), public.mark_welcome_bonus_processing(text, text), public.set_welcome_bonus_provider_reference(text, text), public.confirm_welcome_bonus_paid(text, text), public.fail_welcome_bonus_payout(text, text), public.retry_welcome_bonus_payout(text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.claim_welcome_bonus_payout(text), public.mark_welcome_bonus_processing(text, text), public.set_welcome_bonus_provider_reference(text, text), public.confirm_welcome_bonus_paid(text, text), public.fail_welcome_bonus_payout(text, text), public.retry_welcome_bonus_payout(text) TO service_role;
 
 COMMIT;

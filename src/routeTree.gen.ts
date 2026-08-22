@@ -28,6 +28,9 @@ import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[
 import { Route as ApiAiAnalyticsRouteImport } from './routes/api/ai/analytics'
 import { Route as ApiAiPreferencesRouteImport } from './routes/api/ai/preferences'
 import { Route as ApiAiToolsRouteImport } from './routes/api/ai/tools'
+import { Route as ApiPayoutsBankAccountRouteImport } from './routes/api/payouts/bank-account'
+import { Route as ApiPayoutsProcessRouteImport } from './routes/api/payouts/process'
+import { Route as ApiPayoutsWebhookRouteImport } from './routes/api/payouts/webhook'
 import { Route as ApiPublicViewContextRouteImport } from './routes/api/public/view-context'
 import { Route as ApiVideosTriggerProcessRouteImport } from './routes/api/videos/trigger-process'
 
@@ -129,6 +132,21 @@ const ApiAiToolsRoute = ApiAiToolsRouteImport.update({
   path: '/api/ai/tools',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPayoutsBankAccountRoute = ApiPayoutsBankAccountRouteImport.update({
+  id: '/api/payouts/bank-account',
+  path: '/api/payouts/bank-account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPayoutsProcessRoute = ApiPayoutsProcessRouteImport.update({
+  id: '/api/payouts/process',
+  path: '/api/payouts/process',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPayoutsWebhookRoute = ApiPayoutsWebhookRouteImport.update({
+  id: '/api/payouts/webhook',
+  path: '/api/payouts/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicViewContextRoute = ApiPublicViewContextRouteImport.update({
   id: '/api/public/view-context',
   path: '/api/public/view-context',
@@ -160,6 +178,9 @@ export interface FileRoutesByFullPath {
   '/api/ai/analytics': typeof ApiAiAnalyticsRoute
   '/api/ai/preferences': typeof ApiAiPreferencesRoute
   '/api/ai/tools': typeof ApiAiToolsRoute
+  '/api/payouts/bank-account': typeof ApiPayoutsBankAccountRoute
+  '/api/payouts/process': typeof ApiPayoutsProcessRoute
+  '/api/payouts/webhook': typeof ApiPayoutsWebhookRoute
   '/api/public/view-context': typeof ApiPublicViewContextRoute
   '/api/videos/trigger-process': typeof ApiVideosTriggerProcessRoute
 }
@@ -183,6 +204,9 @@ export interface FileRoutesByTo {
   '/api/ai/analytics': typeof ApiAiAnalyticsRoute
   '/api/ai/preferences': typeof ApiAiPreferencesRoute
   '/api/ai/tools': typeof ApiAiToolsRoute
+  '/api/payouts/bank-account': typeof ApiPayoutsBankAccountRoute
+  '/api/payouts/process': typeof ApiPayoutsProcessRoute
+  '/api/payouts/webhook': typeof ApiPayoutsWebhookRoute
   '/api/public/view-context': typeof ApiPublicViewContextRoute
   '/api/videos/trigger-process': typeof ApiVideosTriggerProcessRoute
 }
@@ -207,6 +231,9 @@ export interface FileRoutesById {
   '/api/ai/analytics': typeof ApiAiAnalyticsRoute
   '/api/ai/preferences': typeof ApiAiPreferencesRoute
   '/api/ai/tools': typeof ApiAiToolsRoute
+  '/api/payouts/bank-account': typeof ApiPayoutsBankAccountRoute
+  '/api/payouts/process': typeof ApiPayoutsProcessRoute
+  '/api/payouts/webhook': typeof ApiPayoutsWebhookRoute
   '/api/public/view-context': typeof ApiPublicViewContextRoute
   '/api/videos/trigger-process': typeof ApiVideosTriggerProcessRoute
 }
@@ -232,6 +259,9 @@ export interface FileRouteTypes {
     | '/api/ai/analytics'
     | '/api/ai/preferences'
     | '/api/ai/tools'
+    | '/api/payouts/bank-account'
+    | '/api/payouts/process'
+    | '/api/payouts/webhook'
     | '/api/public/view-context'
     | '/api/videos/trigger-process'
   fileRoutesByTo: FileRoutesByTo
@@ -255,6 +285,9 @@ export interface FileRouteTypes {
     | '/api/ai/analytics'
     | '/api/ai/preferences'
     | '/api/ai/tools'
+    | '/api/payouts/bank-account'
+    | '/api/payouts/process'
+    | '/api/payouts/webhook'
     | '/api/public/view-context'
     | '/api/videos/trigger-process'
   id:
@@ -278,6 +311,9 @@ export interface FileRouteTypes {
     | '/api/ai/analytics'
     | '/api/ai/preferences'
     | '/api/ai/tools'
+    | '/api/payouts/bank-account'
+    | '/api/payouts/process'
+    | '/api/payouts/webhook'
     | '/api/public/view-context'
     | '/api/videos/trigger-process'
   fileRoutesById: FileRoutesById
@@ -302,6 +338,9 @@ export interface RootRouteChildren {
   ApiAiAnalyticsRoute: typeof ApiAiAnalyticsRoute
   ApiAiPreferencesRoute: typeof ApiAiPreferencesRoute
   ApiAiToolsRoute: typeof ApiAiToolsRoute
+  ApiPayoutsBankAccountRoute: typeof ApiPayoutsBankAccountRoute
+  ApiPayoutsProcessRoute: typeof ApiPayoutsProcessRoute
+  ApiPayoutsWebhookRoute: typeof ApiPayoutsWebhookRoute
   ApiPublicViewContextRoute: typeof ApiPublicViewContextRoute
   ApiVideosTriggerProcessRoute: typeof ApiVideosTriggerProcessRoute
 }
@@ -441,6 +480,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAiToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/payouts/bank-account': {
+      id: '/api/payouts/bank-account'
+      path: '/api/payouts/bank-account'
+      fullPath: '/api/payouts/bank-account'
+      preLoaderRoute: typeof ApiPayoutsBankAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/payouts/process': {
+      id: '/api/payouts/process'
+      path: '/api/payouts/process'
+      fullPath: '/api/payouts/process'
+      preLoaderRoute: typeof ApiPayoutsProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/payouts/webhook': {
+      id: '/api/payouts/webhook'
+      path: '/api/payouts/webhook'
+      fullPath: '/api/payouts/webhook'
+      preLoaderRoute: typeof ApiPayoutsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/view-context': {
       id: '/api/public/view-context'
       path: '/api/public/view-context'
@@ -479,6 +539,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAiAnalyticsRoute: ApiAiAnalyticsRoute,
   ApiAiPreferencesRoute: ApiAiPreferencesRoute,
   ApiAiToolsRoute: ApiAiToolsRoute,
+  ApiPayoutsBankAccountRoute: ApiPayoutsBankAccountRoute,
+  ApiPayoutsProcessRoute: ApiPayoutsProcessRoute,
+  ApiPayoutsWebhookRoute: ApiPayoutsWebhookRoute,
   ApiPublicViewContextRoute: ApiPublicViewContextRoute,
   ApiVideosTriggerProcessRoute: ApiVideosTriggerProcessRoute,
 }
