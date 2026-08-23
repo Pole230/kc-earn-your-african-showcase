@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -42,17 +42,33 @@ function AuthScreen() {
     }
     navigate({ to: "/upload" });
   }
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "reset">("signin");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
 
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setMode("reset");
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
+      if (mode === "reset") {
+        if (password.length < 6) throw new Error("Password must be at least 6 characters");
+        const { error } = await supabase.auth.updateUser({ password });
+        if (error) throw error;
+        toast.success("Password updated", { description: "You can now use your new password." });
+        setMode("signin");
+        setPassword("");
+        return;
+      }
       if (mode === "signup") {
         if (!/^\+[1-9]\d{7,14}$/.test(phone.trim().replace(/[\s().-]/g, ""))) {
           throw new Error("Use an international phone number, for example +2348012345678");
@@ -169,6 +185,12 @@ function AuthScreen() {
         ))}
       </div>
 
+      {mode === "reset" ? (
+        <p className="mb-4 text-sm text-muted-foreground">
+          Choose a new password for your KC Earn account.
+        </p>
+      ) : null}
+
       <form onSubmit={submit} className="space-y-4">
         {mode === "signup" ? (
           <input
@@ -179,15 +201,17 @@ function AuthScreen() {
             maxLength={60}
           />
         ) : null}
-        <input
-          className={input}
-          type="email"
-          required
-          placeholder="Email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+        {mode !== "reset" ? (
+          <input
+            className={input}
+            type="email"
+            required
+            placeholder="Email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        ) : null}
         {mode === "signup" ? (
           <input
             className={input}
@@ -214,7 +238,13 @@ function AuthScreen() {
           disabled={busy}
           className="gradient-brand w-full rounded-2xl py-4 text-base font-bold text-brand-foreground shadow-lift disabled:opacity-40"
         >
-          {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+          {busy
+            ? "Please wait…"
+            : mode === "signin"
+              ? "Sign in"
+              : mode === "signup"
+                ? "Create account"
+                : "Update password"}
         </button>
       </form>
 
