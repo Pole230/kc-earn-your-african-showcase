@@ -163,6 +163,15 @@ function DashboardContent({ userId }: { userId: string }) {
       toast.error("Enter a valid amount");
       return;
     }
+    const minimumWithdrawal = rewardConfig?.minimum_withdrawal ?? 20000;
+    if (value < minimumWithdrawal) {
+      toast.error(`Minimum withdrawal is ${formatMoney(minimumWithdrawal, currency)}`);
+      return;
+    }
+    if (value > (wallet?.available_balance ?? 0)) {
+      toast.error("Amount exceeds your withdrawable balance");
+      return;
+    }
     if (!destination.trim()) {
       toast.error("Add your payout destination");
       return;
