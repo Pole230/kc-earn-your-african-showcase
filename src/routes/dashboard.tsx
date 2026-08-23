@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowDownToLine, Eye, TrendingUp, Video, Wallet as WalletIcon } from "lucide-react";
+import { ArrowDownToLine, Eye, Gift, TrendingUp, Video, Wallet as WalletIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,6 +16,7 @@ import {
   fetchVerificationStatus,
   fetchRewardConfig,
 } from "@/lib/creator";
+import { claimDailyLogin, fetchRewards } from "@/lib/monetization";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -107,6 +108,10 @@ function DashboardContent({ userId }: { userId: string }) {
     queryKey: ["reward-config"],
     queryFn: fetchRewardConfig,
   });
+  const { data: rewards = [] } = useQuery({
+    queryKey: ["rewards", userId],
+    queryFn: () => fetchRewards(),
+  });
   const fullyVerified = Boolean(verification?.phone_verified_at && verification?.email_verified_at);
   const requestedAmount = Number(amount) || 0;
   const platformFee = Math.min(rewardConfig?.withdrawal_fee ?? 0, requestedAmount);
@@ -128,6 +133,26 @@ function DashboardContent({ userId }: { userId: string }) {
     onError: (error: unknown) => {
       const message = error instanceof Error ? error.message : "Could not request withdrawal";
       toast.error(message);
+    },
+  });
+
+  const dailyReward = useMutation({
+    mutationFn: claimDailyLogin,
+    onSuccess: async (result) => {
+      if (!result.granted) {
+        toast.info("Daily reward already claimed", { description: "Come back tomorrow." });
+        return;
+      }
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["wallet", userId] }),
+        queryClient.invalidateQueries({ queryKey: ["rewards", userId] }),
+      ]);
+      toast.success("Daily reward claimed", {
+        description: `${formatMoney(result.amount, currency)} added to promotional credit.`,
+      });
+    },
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : "Could not claim daily reward");
     },
   });
 
@@ -220,6 +245,38 @@ function DashboardContent({ userId }: { userId: string }) {
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="mt-6 rounded-3xl border border-brand/25 bg-brand/10 p-5">
+        <div className="flex items-start gap-3">
+          <Gift className="mt-0.5 size-5 shrink-0 text-brand" />
+          <div className="min-w-0 flex-1">
+            <h2 className="text-sm font-semibold">Daily login reward</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Claim today&apos;s promotional credit once per day.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => dailyReward.mutate()}
+            disabled={dailyReward.isPending}
+            className="shrink-0 rounded-xl bg-brand px-3 py-2 text-xs font-bold text-brand-foreground disabled:opacity-50"
+          >
+            {dailyReward.isPending ? "Claiming…" : "Claim"}
+          </button>
+        </div>
+        {rewards.length > 0 ? (
+          <ul className="mt-4 space-y-2 border-t border-brand/20 pt-3">
+            {rewards.slice(0, 5).map((reward) => (
+              <li key={reward.id} className="flex items-center justify-between gap-3 text-xs">
+                <span className="capitalize text-muted-foreground">
+                  {reward.kind.replaceAll("_", " ")}
+                </span>
+                <span className="font-bold text-leaf">+{formatMoney(reward.amount, currency)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </section>
 
       <section className="mt-6">
