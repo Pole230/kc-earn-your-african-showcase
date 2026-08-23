@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport, type UIMessage } from "ai";
+import { DefaultChatTransport, readUIMessageStream, type UIMessage, type UIMessageChunk } from "ai";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { Loader2, Trash2, X } from "lucide-react";
+import { Loader2, Trash2, Volume2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -31,6 +31,8 @@ const SUGGESTIONS = [
   "What's trending with African creators right now?",
   "How do I grow my audience across Africa?",
 ];
+
+type AiPreferences = Record<string, string>;
 
 function prepareSpeech() {
   if (typeof window === "undefined" || !window.speechSynthesis) return;
@@ -90,7 +92,7 @@ function WelcomeScreen({
       removeFallbackListeners();
       window.speechSynthesis?.cancel();
     };
-  }, [displayName]);
+  }, [displayName, welcome]);
 
   return (
     <div className="flex flex-col items-center px-2 py-8 text-center">
@@ -137,7 +139,7 @@ function ChatPanel({
   userId: string;
   initialMessages: UIMessage[];
   onClose: () => void;
-  prefs: Record<string, any>;
+  prefs: AiPreferences;
   refetchPrefs: () => void;
   displayName: string;
 }) {
@@ -242,24 +244,46 @@ function ChatPanel({
       const token = data.session?.access_token;
       if (!token) throw new Error("Not authenticated");
 
-      const transport = new DefaultChatTransport({
-        api: endpoint,
-        headers: async () => ({ Authorization: `Bearer ${token}` }),
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
+      if (!response.ok) throw new Error(await response.text());
+      if (!response.body) throw new Error("AI tool returned an empty response");
 
-      await sendMessage({ text: JSON.stringify(payload), transport } as any);
+      let assistantMessage: UIMessage | undefined;
+      const stream = readUIMessageStream<UIMessage>({
+        stream: response.body as ReadableStream<UIMessageChunk>,
+        terminateOnError: true,
+      });
+      for await (const message of stream) assistantMessage = message;
+      if (!assistantMessage) throw new Error("AI tool returned no response");
+      setMessages((current) => [...current, assistantMessage]);
+      const responseText = assistantMessage.parts
+        .map((part) => (part.type === "text" ? part.text : ""))
+        .join("")
+        .trim();
+      if (responseText) {
+        speechPendingRef.current = false;
+        spokenMessageIdsRef.current.add(assistantMessage.id);
+        speakText(responseText);
+      }
 
       await queryClient.invalidateQueries({ queryKey: ["ai-history", userId] });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[kc-earn-ai] tool error", err);
-      toast.error(err?.message ?? "Tool error");
+      toast.error(err instanceof Error ? err.message : "Tool error");
     } finally {
       setToolLoading(null);
     }
   }
 
   // Preferences save
-  const [localPrefs, setLocalPrefs] = useState<Record<string, any>>(prefs ?? {});
+  const [localPrefs, setLocalPrefs] = useState<AiPreferences>(prefs ?? {});
   useEffect(() => setLocalPrefs(prefs ?? {}), [prefs]);
   const [savingPrefs, setSavingPrefs] = useState(false);
 
@@ -283,9 +307,9 @@ function ChatPanel({
       }
       toast.success("Preferences saved");
       refetchPrefs();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[kc-earn-ai] save prefs error", err);
-      toast.error(err?.message ?? "Failed to save preferences");
+      toast.error(err instanceof Error ? err.message : "Failed to save preferences");
     } finally {
       setSavingPrefs(false);
     }
@@ -497,6 +521,18 @@ function ChatPanel({
                     }
                   >
                     <MessageResponse>{text}</MessageResponse>
+                    {message.role === "assistant" ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => speakText(text)}
+                        aria-label="Read response aloud"
+                        title="Read response aloud"
+                      >
+                        <Volume2 className="size-4" />
+                      </Button>
+                    ) : null}
                   </MessageContent>
                 </Message>
               );
@@ -551,14 +587,14 @@ export function KcEarnAiPanel({ onClose }: { onClose: () => void }) {
   } = useQuery({
     queryKey: ["ai-prefs", user?.id],
     queryFn: async () => {
-      if (!user) return {} as Record<string, any>;
+      if (!user) return {} as AiPreferences;
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
       const res = await fetch("/api/ai/preferences", {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) return {};
-      return (await res.json()) as Record<string, any>;
+      return (await res.json()) as AiPreferences;
     },
     enabled: Boolean(user),
     staleTime: Infinity,
