@@ -11,8 +11,8 @@ const items = [
 
 export function BottomNav() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/80 bg-background/90 shadow-[0_-12px_32px_oklch(0.06_0.01_45_/_0.45)] backdrop-blur-xl">
-      <ul className="mx-auto grid max-w-2xl grid-cols-5 items-end px-2 pb-[max(0.6rem,env(safe-area-inset-bottom))] pt-2">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/70 bg-background/92 shadow-[0_-18px_40px_oklch(0.03_0.02_158_/_0.8)] backdrop-blur-xl">
+      <ul className="mx-auto grid max-w-2xl grid-cols-5 items-end px-2 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2">
         {items.map(({ to, label, icon: Icon, ...rest }) => {
           const primary = "primary" in rest && rest.primary;
           return (
@@ -20,12 +20,12 @@ export function BottomNav() {
               <Link
                 to={to}
                 aria-label={label}
-                className="group flex min-w-14 flex-col items-center gap-1 rounded-xl px-3 py-1 text-muted-foreground transition-colors hover:text-foreground"
+                className="group flex min-w-14 flex-col items-center gap-1 rounded-2xl px-3 py-1 text-muted-foreground transition-colors hover:bg-surface hover:text-foreground"
                 activeOptions={{ exact: to === "/" }}
                 activeProps={{ className: "text-brand" }}
               >
                 {primary ? (
-                  <span className="gradient-brand -mt-5 grid size-13 place-items-center rounded-2xl text-brand-foreground shadow-lift ring-4 ring-background">
+                  <span className="gradient-brand -mt-5 grid size-14 place-items-center rounded-[1.15rem] text-brand-foreground shadow-lift ring-4 ring-background transition-transform group-hover:-translate-y-0.5">
                     <Icon className="size-6" strokeWidth={2.5} />
                   </span>
                 ) : (
