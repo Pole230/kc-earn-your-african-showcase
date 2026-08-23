@@ -15,7 +15,7 @@ export function KcEarnAiLauncher() {
 
   useEffect(() => {
     if (!session || typeof window === "undefined") return;
-    const key = `kc-earn-ai-welcome:${session.access_token}`;
+    const key = `kc-earn-ai-welcome:${session.user.id}`;
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
     setOpen(true);
