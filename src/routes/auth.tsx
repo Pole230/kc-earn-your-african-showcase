@@ -106,16 +106,42 @@ function AuthScreen() {
   }
 
   async function google() {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: returnTo,
-    });
-    if (result.error) {
-      toast.error("Google sign-in failed");
+    setBusy(true);
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: returnTo,
+      });
+      if (result.error) throw new Error("Google sign-in failed");
+      if (result.redirected) return;
+      await router.invalidate();
+      goAfterAuth();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Google sign-in failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resetPassword() {
+    const address = email.trim().toLowerCase();
+    if (!address) {
+      toast.error("Enter your email address first");
       return;
     }
-    if (result.redirected) return;
-    await router.invalidate();
-    goAfterAuth();
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(address, {
+        redirectTo: `${origin}/auth`,
+      });
+      if (error) throw error;
+      toast.success("Password reset email sent", {
+        description: "Check your inbox for the reset link.",
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not send reset email");
+    } finally {
+      setBusy(false);
+    }
   }
 
   const input =
@@ -191,6 +217,17 @@ function AuthScreen() {
           {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
         </button>
       </form>
+
+      {mode === "signin" ? (
+        <button
+          type="button"
+          onClick={() => void resetPassword()}
+          disabled={busy}
+          className="mt-3 w-full text-sm font-semibold text-brand disabled:opacity-40"
+        >
+          Forgot password?
+        </button>
+      ) : null}
 
       <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
         <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
