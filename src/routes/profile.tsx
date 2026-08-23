@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MapPin, Settings, Grid3x3, Bookmark, Trash2, Wallet } from "lucide-react";
+import { MapPin, Settings, Grid3x3, Trash2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import { PROFILE } from "@/data/content";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,7 +14,8 @@ export const Route = createFileRoute("/profile")({
       { title: "Your Profile — KC Earn" },
       {
         name: "description",
-        content: "Manage your KC Earn creator profile, view your videos, followers and saved content.",
+        content:
+          "Manage your KC Earn creator profile, view your videos, followers and saved content.",
       },
       { property: "og:title", content: "Your Profile — KC Earn" },
       { property: "og:description", content: "Your KC Earn creator profile and video library." },
@@ -24,7 +25,6 @@ export const Route = createFileRoute("/profile")({
 });
 
 function Profile() {
-  const [tab, setTab] = useState<"videos" | "saved">("videos");
   const [editing, setEditing] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [username, setUsername] = useState("");
@@ -103,8 +103,13 @@ function Profile() {
     toast.success("Profile updated");
   };
 
-  const currentName = profile?.display_name ?? user?.user_metadata?.display_name ?? "KC Earn creator";
-  const currentUsername = profile?.username ? `@${profile.username}` : user ? "@creator" : "Sign in to manage your profile";
+  const currentName =
+    profile?.display_name ?? user?.user_metadata?.display_name ?? "KC Earn creator";
+  const currentUsername = profile?.username
+    ? `@${profile.username}`
+    : user
+      ? "@creator"
+      : "Sign in to manage your profile";
   const currentLocation = profile?.location ?? "Location not set";
   const currentBio = profile?.bio ?? "Share your story with the KC Earn community.";
   const initials = currentName
@@ -125,7 +130,6 @@ function Profile() {
     await queryClient.invalidateQueries({ queryKey: ["feed"] });
     toast.success("Video deleted");
   }
-
 
   return (
     <div className="pb-4">
@@ -148,27 +152,71 @@ function Profile() {
 
         <h1 className="mt-3 text-3xl font-bold tracking-tight">{currentName}</h1>
         <p className="text-sm text-muted-foreground">{currentUsername}</p>
-      <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-        <MapPin className="size-4 shrink-0" /> {currentLocation}
-      </p>
-      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{currentBio}</p>
+        <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+          <MapPin className="size-4 shrink-0" /> {currentLocation}
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{currentBio}</p>
 
-      {editing && user ? (
-        <div className="mt-4 space-y-3 rounded-2xl border border-border bg-surface p-4">
-          <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} maxLength={60} placeholder="Display name" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm" />
-          <input value={username} onChange={(event) => setUsername(event.target.value)} maxLength={30} placeholder="Username" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm" />
-          <input value={location} onChange={(event) => setLocation(event.target.value)} maxLength={80} placeholder="Location" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm" />
-          <textarea value={bio} onChange={(event) => setBio(event.target.value)} maxLength={240} placeholder="Bio" rows={3} className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-sm" />
-          <div className="flex gap-2">
-            <button type="button" onClick={() => void saveProfile()} className="gradient-brand flex-1 rounded-xl py-2.5 text-sm font-bold text-brand-foreground">Save profile</button>
-            <button type="button" onClick={() => setEditing(false)} className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold">Cancel</button>
+        {editing && user ? (
+          <div className="mt-4 space-y-3 rounded-2xl border border-border bg-surface p-4">
+            <input
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              maxLength={60}
+              placeholder="Display name"
+              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+            />
+            <input
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              maxLength={30}
+              placeholder="Username"
+              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+            />
+            <input
+              value={location}
+              onChange={(event) => setLocation(event.target.value)}
+              maxLength={80}
+              placeholder="Location"
+              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+            />
+            <textarea
+              value={bio}
+              onChange={(event) => setBio(event.target.value)}
+              maxLength={240}
+              placeholder="Bio"
+              rows={3}
+              className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => void saveProfile()}
+                className="gradient-brand flex-1 rounded-xl py-2.5 text-sm font-bold text-brand-foreground"
+              >
+                Save profile
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditing(false)}
+                className="rounded-xl border border-border px-4 py-2.5 text-sm font-bold"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
 
         <div className="mt-5 grid grid-cols-3 gap-3">
-          {Object.entries({ videos: myVideos.length, followers: followerCount, following: followingCount }).map(([label, value]) => (
-            <div key={label} className="rounded-2xl border border-border/80 bg-card py-3 text-center shadow-lift">
+          {Object.entries({
+            videos: myVideos.length,
+            followers: followerCount,
+            following: followingCount,
+          }).map(([label, value]) => (
+            <div
+              key={label}
+              className="rounded-2xl border border-border/80 bg-card py-3 text-center shadow-lift"
+            >
               <p className="text-lg font-bold">{value}</p>
               <p className="text-xs capitalize text-muted-foreground">{label}</p>
             </div>
@@ -262,32 +310,9 @@ function Profile() {
           </section>
         ) : null}
 
-
-        <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-surface p-1">
-          {(
-            [
-              ["videos", "Videos", Grid3x3],
-              ["saved", "Saved", Bookmark],
-            ] as const
-          ).map(([key, label, Icon]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setTab(key)}
-              className={
-                tab === key
-                  ? "flex items-center justify-center gap-2 rounded-xl bg-brand py-2.5 text-sm font-bold text-brand-foreground"
-                  : "flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-muted-foreground"
-              }
-            >
-              <Icon className="size-4" /> {label}
-            </button>
-          ))}
+        <div className="mt-6 flex items-center gap-2 rounded-2xl border border-border bg-surface p-3 text-sm font-bold">
+          <Grid3x3 className="size-4 text-brand" /> Videos
         </div>
-
-        {tab === "saved" ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">Saved videos will appear here.</p>
-        ) : null}
       </div>
     </div>
   );
