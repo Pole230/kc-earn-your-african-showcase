@@ -38,17 +38,18 @@ function prepareSpeech() {
   window.speechSynthesis.resume();
 }
 
-function speakText(text: string) {
-  if (typeof window === "undefined" || !window.speechSynthesis || !text.trim()) return;
+function speakText(text: string): SpeechSynthesisUtterance | null {
+  if (typeof window === "undefined" || !window.speechSynthesis || !text.trim()) return null;
   prepareSpeech();
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.volume = 1;
   window.speechSynthesis.speak(utterance);
+  return utterance;
 }
 
-function speakWelcome(text: string) {
-  speakText(text);
+function speakWelcome(text: string): SpeechSynthesisUtterance | null {
+  return speakText(text);
 }
 
 function WelcomeScreen({
@@ -61,8 +62,34 @@ function WelcomeScreen({
   const welcome = `Welcome to KC Earn, ${displayName}. KC Earn helps you create, share, and earn from your videos. KC Telecom and KC Messaging are part of the ecosystem; other KC products are coming soon.`;
 
   useEffect(() => {
-    speakWelcome(welcome);
-    return () => window.speechSynthesis?.cancel();
+    const utterance = speakWelcome(
+      `Welcome to KC Earn, ${displayName}. KC Earn helps you create, share, and earn from your videos. KC Telecom and KC Messaging are part of the ecosystem; other KC products are coming soon.`,
+    );
+    if (!utterance) return;
+
+    let started = false;
+    const removeFallbackListeners = () => {
+      document.removeEventListener("pointerdown", retrySpeech, true);
+      document.removeEventListener("keydown", retrySpeech, true);
+      document.removeEventListener("touchstart", retrySpeech, true);
+    };
+    const retrySpeech = () => {
+      if (started) return;
+      speakWelcome(welcome);
+      removeFallbackListeners();
+    };
+    utterance.onstart = () => {
+      started = true;
+      removeFallbackListeners();
+    };
+    document.addEventListener("pointerdown", retrySpeech, true);
+    document.addEventListener("keydown", retrySpeech, true);
+    document.addEventListener("touchstart", retrySpeech, true);
+
+    return () => {
+      removeFallbackListeners();
+      window.speechSynthesis?.cancel();
+    };
   }, [displayName]);
 
   return (
