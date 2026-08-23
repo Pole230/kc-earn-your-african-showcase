@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Search, TrendingUp } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { ScreenHeader } from "@/components/ScreenHeader";
 import { CategoryChips } from "@/components/CategoryChips";
-import { CREATORS, VIDEOS } from "@/data/content";
+import { UploadedVideoCard } from "@/components/UploadedVideoCard";
+import { ExternalVideoCard } from "@/components/ExternalVideoCard";
+import { fetchFeed, type ExternalFeedVideo, type FeedVideo } from "@/lib/videos";
 
 export const Route = createFileRoute("/explore")({
   head: () => ({
@@ -27,13 +30,22 @@ export const Route = createFileRoute("/explore")({
 function Explore() {
   const [category, setCategory] = useState("All");
   const [query, setQuery] = useState("");
+  const {
+    data: videos = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ["explore-feed", category],
+    queryFn: () => fetchFeed(category),
+  });
 
-  const posts = VIDEOS.filter(
-    (v) =>
-      (category === "All" || v.category === category) &&
+  const posts = videos.filter(
+    (video) =>
+      (category === "All" || video.category === category) &&
       (query.trim() === "" ||
-        v.title.toLowerCase().includes(query.toLowerCase()) ||
-        v.creator.name.toLowerCase().includes(query.toLowerCase())),
+        video.title.toLowerCase().includes(query.toLowerCase()) ||
+        video.creator.display_name.toLowerCase().includes(query.toLowerCase())),
   );
 
   return (
@@ -59,24 +71,9 @@ function Explore() {
           <TrendingUp className="size-4 text-brand" /> Rising creators
         </h2>
         <div className="no-scrollbar -mx-5 flex gap-3 overflow-x-auto px-5">
-          {CREATORS.map((c) => (
-            <div
-              key={c.handle}
-              className="w-36 shrink-0 rounded-2xl border border-border bg-card p-4 text-center"
-            >
-              <span className="gradient-brand mx-auto grid size-12 place-items-center rounded-full text-sm font-bold text-brand-foreground">
-                {c.initials}
-              </span>
-              <p className="mt-3 truncate text-sm font-semibold">{c.name}</p>
-              <p className="truncate text-xs text-muted-foreground">{c.followers} followers</p>
-              <button
-                type="button"
-                className="mt-3 w-full rounded-full border border-brand px-3 py-1.5 text-xs font-bold text-brand"
-              >
-                Follow
-              </button>
-            </div>
-          ))}
+          <p className="px-1 text-sm text-muted-foreground">
+            Search the latest published videos to discover creators on KC Earn.
+          </p>
         </div>
       </section>
 
@@ -84,31 +81,31 @@ function Explore() {
         <h2 className="mb-3 text-sm font-bold uppercase tracking-wider text-muted-foreground">
           {category === "All" ? "Trending now" : category}
         </h2>
-        <div className="grid grid-cols-2 gap-3">
-          {posts.map((post) => (
-            <article key={post.id} className="overflow-hidden rounded-2xl border border-border bg-card">
-              <div className="relative aspect-[3/4]">
-                <img
-                  src={post.thumbnail}
-                  alt={post.title}
-                  width={576}
-                  height={768}
-                  loading="lazy"
-                  className="size-full object-cover"
-                />
-                <div className="veil absolute inset-0" />
-                <span className="absolute bottom-2 left-2 text-xs font-semibold text-foreground">
-                  {post.views} views
-                </span>
-              </div>
-              <div className="p-3">
-                <p className="line-clamp-2 text-sm font-semibold leading-snug">{post.title}</p>
-                <p className="mt-1 truncate text-xs text-muted-foreground">{post.creator.handle}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-        {posts.length === 0 ? (
+        {isLoading ? (
+          <div className="h-64 animate-pulse rounded-3xl border border-border bg-surface" />
+        ) : null}
+        {isError ? (
+          <div className="rounded-3xl border border-border bg-surface p-8 text-center">
+            <p className="text-sm font-semibold">The explore feed could not be loaded.</p>
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              className="mt-4 rounded-xl border border-border px-4 py-2 text-sm font-semibold"
+            >
+              Try again
+            </button>
+          </div>
+        ) : null}
+        {!isLoading && !isError
+          ? posts.map((video) =>
+              "source" in video && video.source === "external" ? (
+                <ExternalVideoCard key={video.id} video={video as ExternalFeedVideo} />
+              ) : (
+                <UploadedVideoCard key={video.id} video={video as FeedVideo} />
+              ),
+            )
+          : null}
+        {!isLoading && !isError && posts.length === 0 ? (
           <p className="py-14 text-center text-sm text-muted-foreground">No results found.</p>
         ) : null}
       </section>
