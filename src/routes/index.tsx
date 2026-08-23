@@ -7,6 +7,7 @@ import { CategoryChips } from "@/components/CategoryChips";
 import { UploadedVideoCard } from "@/components/UploadedVideoCard";
 import { fetchFeed, type ExternalFeedVideo } from "@/lib/videos";
 import { ExternalVideoCard } from "@/components/ExternalVideoCard";
+import { useRequireAuth } from "@/lib/require-auth";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,12 +29,21 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
+  const { loading: authLoading, user } = useRequireAuth();
   const [category, setCategory] = useState("All");
   // Use only real uploaded videos from Supabase. Remove mock/demo data.
   const { data: uploaded = [], isLoading, isError, refetch } = useQuery({
     queryKey: ["feed", category],
     queryFn: () => fetchFeed(category),
   });
+
+  if (authLoading || !user) {
+    return (
+      <div className="px-5 pb-4 pt-6 sm:px-8 sm:pt-9">
+        <div className="h-64 animate-pulse rounded-3xl border border-border bg-surface" />
+      </div>
+    );
+  }
 
   return (
     <div className="px-5 pb-4 pt-6 sm:px-8 sm:pt-9">

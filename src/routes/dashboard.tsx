@@ -4,15 +4,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDownToLine, Eye, Gift, TrendingUp, Video, Wallet as WalletIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { useAuth } from "@/hooks/useAuth";
+import { useRequireAuth } from "@/lib/require-auth";
 import { fetchMyVideos, formatCount, timeAgo } from "@/lib/videos";
 import {
   PAYOUT_METHODS,
   fetchEarnings,
   fetchWallet,
-  fetchWithdrawals,
+  fetchEarningsBlockWithdrawals,
   formatMoney,
-  requestWithdrawal,
+  requestEarningsBlockWithdrawal,
   fetchVerificationStatus,
   fetchRewardConfig,
 } from "@/lib/creator";
@@ -47,30 +47,13 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 function Dashboard() {
-  const { user, loading } = useAuth();
+  const { user, loading } = useRequireAuth();
 
-  if (loading) {
+  if (loading || !user) {
     return (
       <div className="px-5">
         <ScreenHeader title="Creator dashboard" subtitle="Loading your creator data…" />
         <div className="h-40 animate-pulse rounded-3xl border border-border bg-surface" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="px-5">
-        <ScreenHeader
-          title="Creator dashboard"
-          subtitle="Sign in to see your views, earnings and payouts."
-        />
-        <Link
-          to="/auth"
-          className="gradient-brand block rounded-2xl py-3 text-center text-sm font-bold text-brand-foreground"
-        >
-          Sign in
-        </Link>
       </div>
     );
   }
@@ -80,9 +63,9 @@ function Dashboard() {
 
 function DashboardContent({ userId }: { userId: string }) {
   const queryClient = useQueryClient();
-  const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<string>(PAYOUT_METHODS[0]);
   const [destination, setDestination] = useState("");
+  const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID());
 
   const { data: wallet } = useQuery({
     queryKey: ["wallet", userId],
@@ -93,8 +76,8 @@ function DashboardContent({ userId }: { userId: string }) {
     queryFn: () => fetchEarnings(userId),
   });
   const { data: withdrawals = [] } = useQuery({
-    queryKey: ["withdrawals", userId],
-    queryFn: () => fetchWithdrawals(userId),
+    queryKey: ["earnings-block-withdrawals", userId],
+    queryFn: () => fetchEarningsBlockWithdrawals(userId),
   });
   const { data: videos = [] } = useQuery({
     queryKey: ["my-videos", userId],
@@ -113,20 +96,24 @@ function DashboardContent({ userId }: { userId: string }) {
     queryFn: () => fetchRewards(),
   });
   const fullyVerified = Boolean(verification?.phone_verified_at && verification?.email_verified_at);
-  const requestedAmount = Number(amount) || 0;
-  const platformFee = Math.min(rewardConfig?.withdrawal_fee ?? 0, requestedAmount);
+
+  const blockSize = rewardConfig?.earnings_block_size ?? 25000;
+  const blockUserShare = rewardConfig?.earnings_block_user_share ?? 20000;
+  const blockOwnerShare = rewardConfig?.earnings_block_owner_share ?? 5000;
+  const eligibleBlocks = Math.floor((wallet?.available_balance ?? 0) / blockSize);
+  const canWithdrawBlock = eligibleBlocks >= 1;
 
   const currency = wallet?.currency ?? "USD";
   const totalViews = videos.reduce((sum, video) => sum + (video.views_count ?? 0), 0);
 
   const withdraw = useMutation({
-    mutationFn: requestWithdrawal,
+    mutationFn: requestEarningsBlockWithdrawal,
     onSuccess: async () => {
-      setAmount("");
       setDestination("");
+      setIdempotencyKey(crypto.randomUUID());
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["wallet", userId] }),
-        queryClient.invalidateQueries({ queryKey: ["withdrawals", userId] }),
+        queryClient.invalidateQueries({ queryKey: ["earnings-block-withdrawals", userId] }),
       ]);
       toast.success("Withdrawal requested");
     },
@@ -158,25 +145,15 @@ function DashboardContent({ userId }: { userId: string }) {
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
-    const value = Number(amount);
-    if (!Number.isFinite(value) || value <= 0) {
-      toast.error("Enter a valid amount");
-      return;
-    }
-    const minimumWithdrawal = rewardConfig?.minimum_withdrawal ?? 20000;
-    if (value < minimumWithdrawal) {
-      toast.error(`Minimum withdrawal is ${formatMoney(minimumWithdrawal, currency)}`);
-      return;
-    }
-    if (value > (wallet?.available_balance ?? 0)) {
-      toast.error("Amount exceeds your withdrawable balance");
+    if (!canWithdrawBlock) {
+      toast.error(`You need at least ${formatMoney(blockSize, currency)} eligible earnings to withdraw`);
       return;
     }
     if (!destination.trim()) {
       toast.error("Add your payout destination");
       return;
     }
-    withdraw.mutate({ amount: value, method, destination: destination.trim() });
+    withdraw.mutate({ method, destination: destination.trim(), idempotencyKey });
   }
 
   return (
@@ -310,32 +287,33 @@ function DashboardContent({ userId }: { userId: string }) {
           <div className="rounded-2xl border border-border/80 bg-surface p-4 text-sm">
             <p className="font-semibold">Withdrawable balance & payout rules</p>
             <p className="mt-1 text-muted-foreground">
-              Minimum {formatMoney(rewardConfig?.minimum_withdrawal ?? 20000, currency)} eligible
-              earnings.
+              Earnings withdraw in fixed blocks of {formatMoney(blockSize, currency)}: you receive{" "}
+              {formatMoney(blockUserShare, currency)}, {formatMoney(blockOwnerShare, currency)} is
+              the platform share.
             </p>
-            {requestedAmount > 0 ? (
-              <div className="mt-2 space-y-1 text-xs text-muted-foreground">
-                <p>Requested amount: {formatMoney(requestedAmount, currency)}</p>
-                <p>Platform fee: {formatMoney(platformFee, currency)}</p>
-                <p className="font-semibold text-foreground">
-                  Payout amount: {formatMoney(requestedAmount - platformFee, currency)}
+            <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+              <p>
+                Eligible complete blocks:{" "}
+                <span className="font-semibold text-foreground">{eligibleBlocks}</span>
+              </p>
+              {eligibleBlocks > 1 ? (
+                <p>
+                  This request pays out one block ({formatMoney(blockUserShare, currency)}). Submit
+                  again after it completes to withdraw another block.
                 </p>
-              </div>
-            ) : null}
+              ) : null}
+              {canWithdrawBlock ? (
+                <p className="font-semibold text-foreground">
+                  This request: you receive {formatMoney(blockUserShare, currency)}
+                </p>
+              ) : (
+                <p>
+                  Not yet eligible — you need {formatMoney(blockSize, currency)} in available
+                  earnings to withdraw a block.
+                </p>
+              )}
+            </div>
           </div>
-          <label className="block">
-            <span className="text-xs text-muted-foreground">Amount ({currency})</span>
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              inputMode="decimal"
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-              placeholder="0.00"
-              className="mt-1 w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm outline-none focus:border-brand"
-            />
-          </label>
           <label className="block">
             <span className="text-xs text-muted-foreground">Payout method</span>
             <select
@@ -361,10 +339,10 @@ function DashboardContent({ userId }: { userId: string }) {
           </label>
           <button
             type="submit"
-            disabled={withdraw.isPending}
+            disabled={withdraw.isPending || !canWithdrawBlock}
             className="gradient-brand w-full rounded-2xl py-3 text-sm font-bold text-brand-foreground disabled:opacity-60"
           >
-            {withdraw.isPending ? "Requesting…" : "Request withdrawal"}
+            {withdraw.isPending ? "Requesting…" : "Request block withdrawal"}
           </button>
         </form>
 
@@ -377,7 +355,7 @@ function DashboardContent({ userId }: { userId: string }) {
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">
-                    {formatMoney(item.amount, currency)} · {item.method}
+                    {formatMoney(item.user_payout_amount, currency)} · {item.method}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
                     {item.destination} · {timeAgo(item.created_at)}
