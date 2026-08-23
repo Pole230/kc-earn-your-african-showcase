@@ -167,7 +167,13 @@ function Upload() {
       videoRecordCreated = true;
 
       setProgressText("Processing video…");
-      await processUploadedVideo({ data: { videoId: inserted.id } });
+      let processingPending = false;
+      try {
+        await processUploadedVideo({ data: { videoId: inserted.id } });
+      } catch (processingError) {
+        processingPending = true;
+        console.error("Video processing deferred", processingError);
+      }
 
       // Refresh feed queries
       await queryClient.invalidateQueries({ queryKey: ["feed"] });
@@ -176,7 +182,11 @@ function Upload() {
       setUploadStage("done");
       setProgressText(null);
 
-      toast.success("Video published", { description: "Your video is now available in the feed." });
+      toast.success(processingPending ? "Video uploaded" : "Video published", {
+        description: processingPending
+          ? "Your video is saved and will appear after processing finishes."
+          : "Your video is now available in the feed.",
+      });
 
       // reset form
       setFile(null);
