@@ -6,7 +6,7 @@
 
 /*
  * KC Earn design system.
- * Warm African-inspired palette on a deep charcoal canvas.
+ * Premium blue palette on a deep navy canvas.
  * All colors are oklch tokens; never hardcode colors in components.
  */
 
@@ -65,50 +65,50 @@
 
 :root {
   --radius: 1.125rem;
-  --background: oklch(0.105 0.018 158);
-  --foreground: oklch(0.97 0.008 80);
-  --surface: oklch(0.155 0.022 158);
-  --surface-strong: oklch(0.21 0.03 158);
-  --card: oklch(0.17 0.024 158);
-  --card-foreground: oklch(0.97 0.008 80);
-  --popover: oklch(0.2 0.028 158);
-  --popover-foreground: oklch(0.97 0.008 80);
-  --primary: oklch(0.75 0.17 55);
-  --primary-foreground: oklch(0.19 0.03 50);
-  --brand: oklch(0.75 0.17 55);
-  --brand-foreground: oklch(0.19 0.03 50);
-  --brand-glow: oklch(0.83 0.16 88);
-  --leaf: oklch(0.72 0.13 165);
-  --clay: oklch(0.63 0.17 30);
-  --sky: oklch(0.72 0.12 235);
-  --secondary: oklch(0.225 0.026 158);
-  --secondary-foreground: oklch(0.95 0.008 80);
-  --muted: oklch(0.2 0.025 158);
-  --muted-foreground: oklch(0.72 0.025 165);
-  --accent: oklch(0.28 0.045 158);
-  --accent-foreground: oklch(0.97 0.008 80);
+  --background: oklch(0.12 0.025 255);
+  --foreground: oklch(0.98 0.006 255);
+  --surface: oklch(0.17 0.035 255);
+  --surface-strong: oklch(0.22 0.045 255);
+  --card: oklch(0.19 0.038 255);
+  --card-foreground: oklch(0.98 0.006 255);
+  --popover: oklch(0.22 0.045 255);
+  --popover-foreground: oklch(0.98 0.006 255);
+  --primary: oklch(0.68 0.2 255);
+  --primary-foreground: oklch(0.99 0.004 255);
+  --brand: oklch(0.68 0.2 255);
+  --brand-foreground: oklch(0.99 0.004 255);
+  --brand-glow: oklch(0.8 0.15 230);
+  --leaf: oklch(0.72 0.16 225);
+  --clay: oklch(0.67 0.18 275);
+  --sky: oklch(0.78 0.13 220);
+  --secondary: oklch(0.3 0.08 235);
+  --secondary-foreground: oklch(0.97 0.008 255);
+  --muted: oklch(0.23 0.045 255);
+  --muted-foreground: oklch(0.78 0.025 255);
+  --accent: oklch(0.31 0.075 255);
+  --accent-foreground: oklch(0.98 0.006 255);
   --destructive: oklch(0.6 0.22 25);
-  --destructive-foreground: oklch(0.98 0.005 80);
-  --border: oklch(0.29 0.03 158);
-  --input: oklch(0.25 0.03 158);
-  --ring: oklch(0.75 0.17 55);
-  --chart-1: oklch(0.75 0.17 55);
-  --chart-2: oklch(0.72 0.13 165);
-  --chart-3: oklch(0.72 0.12 235);
-  --chart-4: oklch(0.83 0.16 88);
-  --chart-5: oklch(0.63 0.17 30);
-  --sidebar: oklch(0.13 0.02 158);
-  --sidebar-foreground: oklch(0.97 0.008 80);
-  --sidebar-primary: oklch(0.75 0.17 55);
-  --sidebar-primary-foreground: oklch(0.19 0.03 50);
-  --sidebar-accent: oklch(0.25 0.03 158);
-  --sidebar-accent-foreground: oklch(0.97 0.008 80);
-  --sidebar-border: oklch(0.32 0.022 55);
-  --sidebar-ring: oklch(0.75 0.17 55);
+  --destructive-foreground: oklch(0.98 0.005 255);
+  --border: oklch(0.34 0.06 255);
+  --input: oklch(0.25 0.05 255);
+  --ring: oklch(0.72 0.18 245);
+  --chart-1: oklch(0.68 0.2 255);
+  --chart-2: oklch(0.72 0.16 225);
+  --chart-3: oklch(0.78 0.13 220);
+  --chart-4: oklch(0.67 0.18 275);
+  --chart-5: oklch(0.58 0.17 290);
+  --sidebar: oklch(0.14 0.03 255);
+  --sidebar-foreground: oklch(0.98 0.006 255);
+  --sidebar-primary: oklch(0.68 0.2 255);
+  --sidebar-primary-foreground: oklch(0.99 0.004 255);
+  --sidebar-accent: oklch(0.27 0.06 255);
+  --sidebar-accent-foreground: oklch(0.98 0.006 255);
+  --sidebar-border: oklch(0.36 0.06 255);
+  --sidebar-ring: oklch(0.72 0.18 245);
 
-  --gradient-brand: linear-gradient(135deg, oklch(0.64 0.15 150), var(--brand) 62%, var(--brand-glow));
-  --gradient-veil: linear-gradient(to top, oklch(0.1 0.02 158 / 0.96), transparent 62%);
-  --shadow-lift: 0 20px 45px -24px oklch(0.02 0.03 158 / 0.95);
+  --gradient-brand: linear-gradient(135deg, oklch(0.52 0.19 275), var(--brand) 62%, var(--brand-glow));
+  --gradient-veil: linear-gradient(to top, oklch(0.11 0.025 255 / 0.96), transparent 62%);
+  --shadow-lift: 0 20px 45px -24px oklch(0.03 0.04 255 / 0.95);
 }
 
 @utility gradient-brand {
@@ -141,8 +141,8 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     background-image:
-      linear-gradient(180deg, oklch(0.19 0.03 158 / 0.18), transparent 28rem),
-      radial-gradient(circle at 82% 0%, oklch(0.72 0.13 165 / 0.08), transparent 22rem);
+      linear-gradient(180deg, oklch(0.23 0.06 255 / 0.2), transparent 28rem),
+      radial-gradient(circle at 82% 0%, oklch(0.68 0.2 255 / 0.1), transparent 22rem);
     min-width: 320px;
   }
 

@@ -102,7 +102,7 @@ function WelcomeScreen({
         width={512}
         height={512}
         loading="lazy"
-        className="size-20 drop-shadow-[0_10px_30px_oklch(0.75_0.17_55/0.35)]"
+        className="size-20 drop-shadow-[0_10px_30px_oklch(0.68_0.2_255/0.4)]"
       />
       <h2 className="mt-4 text-xl font-bold">KC Earn AI – Your Smart Creator Assistant</h2>
       <p className="mt-2 text-sm font-semibold tracking-wide text-brand">

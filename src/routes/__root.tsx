@@ -73,7 +73,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     </div>
   );
 }
-
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
@@ -129,7 +128,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="mx-auto min-h-screen w-full max-w-2xl bg-background/90 pb-28 shadow-[0_0_80px_oklch(0.04_0.01_45_/_0.45)]">
+      <div className="mx-auto min-h-screen w-full max-w-2xl bg-background/90 pb-28 shadow-[0_0_80px_oklch(0.04_0.03_255_/_0.55)]">
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
       </div>
@@ -140,4 +139,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-

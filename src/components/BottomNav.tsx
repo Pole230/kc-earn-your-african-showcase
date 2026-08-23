@@ -11,7 +11,7 @@ const items = [
 
 export function BottomNav() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/70 bg-background/92 shadow-[0_-18px_40px_oklch(0.03_0.02_158_/_0.8)] backdrop-blur-xl">
+    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/70 bg-background/92 shadow-[0_-18px_40px_oklch(0.03_0.03_255_/_0.8)] backdrop-blur-xl">
       <ul className="mx-auto grid max-w-2xl grid-cols-5 items-end px-2 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2">
         {items.map(({ to, label, icon: Icon, ...rest }) => {
           const primary = "primary" in rest && rest.primary;
