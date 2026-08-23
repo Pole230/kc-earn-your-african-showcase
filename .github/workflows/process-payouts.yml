@@ -1,0 +1,21 @@
+name: Process pending Paystack payouts
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Process welcome bonus payouts
+        run: |
+          curl -sS -X POST "${{ secrets.KC_EARN_APP_URL }}/api/payouts/process" \
+            -H "x-payout-process-secret: ${{ secrets.WELCOME_PAYOUT_PROCESS_SECRET }}" \
+            --fail-with-body
+      - name: Process earnings block withdrawals
+        run: |
+          curl -sS -X POST "${{ secrets.KC_EARN_APP_URL }}/api/payouts/process-earnings-block" \
+            -H "x-payout-process-secret: ${{ secrets.EARNINGS_BLOCK_PAYOUT_PROCESS_SECRET }}" \
+            --fail-with-body
