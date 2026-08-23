@@ -41,6 +41,20 @@ export type RewardConfig = {
   referral_reward: number;
   minimum_withdrawal: number;
   withdrawal_fee: number;
+  earnings_block_size: number;
+  earnings_block_user_share: number;
+  earnings_block_owner_share: number;
+};
+
+export type EarningsBlockWithdrawal = {
+  id: string;
+  method: string;
+  destination: string;
+  block_size: number;
+  user_payout_amount: number;
+  owner_share_amount: number;
+  status: "pending" | "processing" | "paid" | "rejected";
+  created_at: string;
 };
 
 export const PAYOUT_METHODS = ["Mobile Money", "Bank Transfer", "PayPal"] as const;
@@ -119,6 +133,10 @@ export async function fetchWithdrawals(userId: string): Promise<Withdrawal[]> {
   }));
 }
 
+// Legacy minimum-withdrawal + flat-fee flow. Kept in place (both the RPC and
+// this client wrapper) for backward compatibility but no longer called from
+// the dashboard UI — superseded by requestEarningsBlockWithdrawal, which
+// implements the final ₦25,000-block / ₦20,000-user / ₦5,000-owner rule.
 export async function requestWithdrawal(input: {
   amount: number;
   method: string;
@@ -128,6 +146,47 @@ export async function requestWithdrawal(input: {
     _amount: input.amount,
     _method: input.method,
     _destination: input.destination,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchEarningsBlockWithdrawals(
+  userId: string,
+): Promise<EarningsBlockWithdrawal[]> {
+  const { data, error } = await supabase
+    .from("earnings_block_withdrawals")
+    .select("id,method,destination,block_size,user_payout_amount,owner_share_amount,status,created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    method: row.method,
+    destination: row.destination,
+    block_size: num(row.block_size),
+    user_payout_amount: num(row.user_payout_amount),
+    owner_share_amount: num(row.owner_share_amount),
+    status: row.status,
+    created_at: row.created_at,
+  }));
+}
+
+// Pays out exactly one complete ₦25,000 block per call (server-enforced —
+// the split is never computed or chosen on the client). A user eligible for
+// more than one block calls this again for each additional block; the
+// dashboard UI has no block-count selector, so this matches "explicitly lets
+// the user choose the number of blocks" = no, and defaults to one block.
+export async function requestEarningsBlockWithdrawal(input: {
+  method: string;
+  destination: string;
+  idempotencyKey: string;
+}) {
+  const { data, error } = await supabase.rpc("request_earnings_block_withdrawal", {
+    _method: input.method,
+    _destination: input.destination,
+    _idempotency_key: input.idempotencyKey,
   });
   if (error) throw error;
   return data;
@@ -157,7 +216,9 @@ export async function fetchRewardConfig(): Promise<RewardConfig> {
   };
   const { data, error } = await client
     .from("platform_reward_config")
-    .select("signup_bonus,referral_target,referral_reward,minimum_withdrawal,withdrawal_fee")
+    .select(
+      "signup_bonus,referral_target,referral_reward,minimum_withdrawal,withdrawal_fee,earnings_block_size,earnings_block_user_share,earnings_block_owner_share",
+    )
     .eq("id", true)
     .maybeSingle();
   if (error || !data) throw error ?? new Error("Could not load reward configuration");
