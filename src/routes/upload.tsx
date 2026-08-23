@@ -39,9 +39,11 @@ function Upload() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<{ url: string | null; duration: number; blob: Blob | null } | null>(
-    null,
-  );
+  const [preview, setPreview] = useState<{
+    url: string | null;
+    duration: number;
+    blob: Blob | null;
+  } | null>(null);
   const [progressText, setProgressText] = useState<string | null>(null);
   const [progressPercent, setProgressPercent] = useState<number | null>(null);
   const [uploadStage, setUploadStage] = useState<
@@ -110,10 +112,13 @@ function Upload() {
     setUploadStage("uploading");
     setProgressText("Uploading video…");
 
+    let videoPath: string | null = null;
+    let thumbnailPath: string | null = null;
+    let videoRecordCreated = false;
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() ?? "mp4";
       const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const videoPath = `${user.id}/${stamp}.${ext}`;
+      videoPath = `${user.id}/${stamp}.${ext}`;
 
       // Upload video
       const { error: videoError } = await supabase.storage
@@ -124,7 +129,6 @@ function Upload() {
       setUploadStage("uploading-thumb");
       setProgressText("Uploading cover image…");
 
-      let thumbnailPath: string | null = null;
       if (preview?.blob) {
         thumbnailPath = `${user.id}/${stamp}.jpg`;
         const { error: thumbError } = await supabase.storage
@@ -143,7 +147,7 @@ function Upload() {
       // Insert video record. Use Database-generated typing for the insert payload; store only permanent storage paths.
       const { data: inserted, error: insertError } = await supabase
         .from("videos")
-        .insert<Database['public']['Tables']['videos']['Insert']>([
+        .insert<Database["public"]["Tables"]["videos"]["Insert"]>([
           {
             user_id: user.id,
             title: title.trim(),
@@ -160,6 +164,7 @@ function Upload() {
 
       if (insertError) throw insertError;
       if (!inserted?.id) throw new Error("Upload record was not created");
+      videoRecordCreated = true;
 
       setProgressText("Processing video…");
       await processUploadedVideo({ data: { videoId: inserted.id } });
@@ -183,6 +188,14 @@ function Upload() {
       navigate({ to: "/" });
     } catch (err) {
       console.error("Upload failed", err);
+      if (!videoRecordCreated) {
+        const cleanupTasks: Promise<unknown>[] = [];
+        if (videoPath) cleanupTasks.push(supabase.storage.from("videos").remove([videoPath]));
+        if (thumbnailPath) {
+          cleanupTasks.push(supabase.storage.from("thumbnails").remove([thumbnailPath]));
+        }
+        await Promise.allSettled(cleanupTasks);
+      }
       setUploadStage("error");
       setProgressText(null);
       const message = err instanceof Error ? err.message : String(err);
@@ -231,7 +244,9 @@ function Upload() {
             <UploadCloud className="size-7" />
           </span>
         )}
-        <span className="line-clamp-1 text-base font-semibold">{file?.name ?? "Select a video to upload"}</span>
+        <span className="line-clamp-1 text-base font-semibold">
+          {file?.name ?? "Select a video to upload"}
+        </span>
         <span className="text-xs text-muted-foreground">MP4 or MOV · up to 200MB</span>
         <input
           type="file"
@@ -292,11 +307,13 @@ function Upload() {
 
         {progressPercent !== null ? (
           <div className="w-full">
-            <div className="mb-2 text-xs text-muted-foreground">{progressText ?? "Uploading..."}</div>
+            <div className="mb-2 text-xs text-muted-foreground">
+              {progressText ?? "Uploading..."}
+            </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
               <div
                 className="h-2 rounded-full bg-brand"
-                style={{ width: `${progressPercent}%`, transition: 'width 400ms linear' }}
+                style={{ width: `${progressPercent}%`, transition: "width 400ms linear" }}
               />
             </div>
           </div>
